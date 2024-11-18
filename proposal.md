@@ -9,7 +9,12 @@ OpenSketch is a digital canvas where users can make their ideas come to life via
 
 While those are the two core features that will be the highlight of the app, I would like to incoporate other useful features into the app. For instance, a page mode that allows the user to choose to whether they want to draw on a blank, lined, or graph paper; a shape and ruler tool that helps users draw perfect shapes and lines; and an organized filing system so that users can save and organize their drawings or notes. 
 
-- Insert Pictures if time permits - 
+Lasso Mode Feature in OneNote:
+[Lasso Mode pt.1](https://drive.google.com/file/d/1VewHUK3euSShBDbIQqShjk0EpREby5lB/view?usp=drive_link)
+[Lasso Mode pt.2](https://drive.google.com/file/d/1lYH1tbGFvWznFqlqqzIs7sA-sp1nY0-9/view?usp=drive_link)
+
+Shape Detection/Autocorrect in OneNote:
+[Shape Autocorrect](https://drive.google.com/file/d/1BqRBHj7tpkuUrNVgbG-NMG3nr7o9zzTR/view?usp=drive_link)
 
 Similar Projects:
 - OneNote 
