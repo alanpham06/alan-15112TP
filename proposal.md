@@ -9,7 +9,12 @@ OpenSketch is a digital canvas where users can make their ideas come to life via
 
 While those are the two core features that will be the highlight of the app, I would like to incoporate other useful features into the app. For instance, a page mode that allows the user to choose to whether they want to draw on a blank, lined, or graph paper; a shape and ruler tool that helps users draw perfect shapes and lines; and an organized filing system so that users can save and organize their drawings or notes. 
 
-- Insert Pictures if time permits - 
+Lasso Mode Feature in OneNote:
+[Lasso Mode pt.1](https://drive.google.com/file/d/1VewHUK3euSShBDbIQqShjk0EpREby5lB/view?usp=drive_link)
+[Lasso Mode pt.2](https://drive.google.com/file/d/1lYH1tbGFvWznFqlqqzIs7sA-sp1nY0-9/view?usp=drive_link)
+
+Shape Detection/Autocorrect in OneNote:
+[Shape Autocorrect](https://drive.google.com/file/d/1BqRBHj7tpkuUrNVgbG-NMG3nr7o9zzTR/view?usp=drive_link)
 
 Similar Projects:
 - OneNote 
@@ -26,10 +31,11 @@ Universal Features Between The Similar Apps/Projects:
 - handwriting recognition
 - zoom view
 
-Verison Control / Backup Plan: My primary plan for version control and backing up my code will be through my personal github repository named 'alan-15112 TP'. Everytime I edit or make changes to my project, I will do it on a separate branch. When I am done with my session of coding, I will commit my code and perform a pull request to bring my changes back into the main branch. My secondary plan will be to keep an extra copy of my code uploaded in my CMU google drive. 
+Verison Control / Backup Plan: 
 
-- Insert Pictures regarding Version Control / Backup Plan - 
+My primary plan for version control and backing up my code will be through my personal github repository named 'alan-15112 TP'. Everytime I edit or make changes to my project, I will do it on a separate branch. When I am done with my session of coding, I will commit my code and perform a pull request to bring my changes back into the main branch. My secondary plan will be to keep an extra copy of my code uploaded in my CMU google drive. 
+
+[Personal GitHub Repository](https://1drv.ms/i/c/7de8dfd826851dd6/EQAL5DwboVpLgsWOdj9BjiUBw3G3Q2rMNPeTYN3t1gffeQ?e=zHFaij)
 
 Tech List:
-- None
-- (Possible external module for zooming into certain parts of page)
+- None / No external tech modules
