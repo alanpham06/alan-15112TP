@@ -25,6 +25,7 @@ def onAppStart(app):
 
     # List of all the lines drawn
     app.allLines = []
+    app.allObjects = []
     pass
 
 def redrawAll(app):
@@ -53,6 +54,9 @@ def onMouseMove(app, mouseX, mouseY):
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
+    app.allObjects.append(app.allLines)
+    app.allLines = []
+    app.cursX, app.cursY = mouseX, mouseY
     pass
 
 def main():
