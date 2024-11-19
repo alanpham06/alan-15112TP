@@ -1,61 +1,61 @@
 from cmu_graphics import *
+# Create a line class that will help with connecting all of the points
+class Line:
+    def __init__(self, x0, y0, x1, y1):
+        self.x0 = x0
+        self.y0 = y0
+        self.x1 = x1
+        self.y1 = y1
+        self.color = 'black'
+        self.lineWidth = 5
+    
+    def __repr__(self):
+        return f'Line from ({self.x0}, {self.y0}) to ({self.x1}, {self.y1})'
 
 def onAppStart(app):
+    # App speed
+    # app.stepsPerSecond = 10
+
     # Cursor properties
-    app.cx = 200
-    app.cy = 200
-    app.r = 20
+    app.cursX = 200
+    app.cursY = 200
+    app.cursNewX = None
+    app.cursNewY = None
+    app.r = 5
 
-    # Current line endpoints
-    app.x0 = None
-    app.y0 = None
-    app.x1 = None
-    app.y1 = None
-
-    # List of all the lines/temp circles
-    app.lines = []
-    app.circs = []
+    # List of all the lines drawn
+    app.allLines = []
     pass
 
 def redrawAll(app):
     # Draw cursor
-    drawCircle(app.cx, app.cy, app.r, fill='aqua')
-
-    # Draw temp circles
-    for cx, cy in app.circs:
-        drawCircle(cx, cy, 5, fill='black')
-
-    if (app.x0 != None) and (app.y0 != None) and (app.x1 != None) and (app.y1 != None):
-        drawLine(app.x0, app.y0, app.x1, app.y1, fill='black', lineWidth=10)
+    drawCircle(app.cursX, app.cursY, app.r, fill='aqua')
+    
+    # Draw all of the lines
+    for line in app.allLines:
+        x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
+        drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
     pass
 
 def onMousePress(app, mouseX, mouseY):
-    app.x0, app.y0 = mouseX, mouseY
-    app.circs.append((app.x0, app.y0))
-    app.lines.append(app.x0)
-    app.lines.append(app.y0)
     pass
 
-def onMouseHold(app, mouseX, mouseY):
+def onMouseDrag(app, mouseX, mouseY):
     app.x1, app.y1 = mouseX, mouseY
-    app.circs.append((app.x1, app.y1))
-    app.lines.append(app.x1)
-    app.lines.append(app.y1)
+    if (abs(app.cursX - app.x1) > 5) and (abs(app.cursY - app.y1) > 5):
+        tempLine = Line(app.cursX, app.cursY, app.x1, app.y1)
+        app.allLines.append(tempLine)
+        app.cursX, app.cursY = mouseX, mouseY
+        app.x1, app.y1 = None, None
+    pass
 
 def onMouseMove(app, mouseX, mouseY):
-    app.cx, app.cy = mouseX, mouseY
-    app.x1, app.y1 = mouseX, mouseY
     pass
     
-
 def onMouseRelease(app, mouseX, mouseY):
-    app.x1, app.y1 = mouseX, mouseY
-    pass
-
-def onStep(app):
     pass
 
 def main():
-    runApp()
+    runApp(width=800, height=500)
 
 main()
