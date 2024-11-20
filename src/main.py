@@ -95,7 +95,7 @@ def getWritingUtensilSelection(app, mouseX, mouseY):
     return None
 
 def redrawAll(app):
-    # Draw tool bar
+    # Draw tool bar + design
     drawRect(app.toolBarX, app.toolBarY-5, app.toolBarWidth+5, app.toolBarHeight+5, fill=app.toolBarBGColor)
     drawRect(app.toolBarX, app.toolBarY, app.toolBarWidth, app.toolBarHeight, fill=app.toolBarColor)
     # Draw writing utensil icons in tool bar
