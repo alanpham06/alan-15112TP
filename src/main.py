@@ -1,6 +1,6 @@
 from cmu_graphics import *
 from urllib.request import urlopen
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 # Create a line class that will help with connecting all of the points
 class Line:
@@ -16,12 +16,56 @@ class Line:
         return f'Line from ({self.x0}, {self.y0}) to ({self.x1}, {self.y1})'
     
 # Create classes for each writing utensil
+class Pencil:
+    def __init__(self, app):
+         # Eventually used to check if mode is active or not
+        self.pencilMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/pencil-icon.jpg?raw=true'
+        pencilPILImage = loadPilImage(url)
+        pencilPILImgResize = pencilPILImage.resize((app.iconWidth, app.iconHeight))
+        pencilPILImgAdjusted = addRoundedCornersWithBG(pencilPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuPencilImgFinal = CMUImage(pencilPILImgAdjusted)
+
 class Pen:
     def __init__(self, app):
+        # Eventually used to check if mode is active or not
         self.penMode = False
-        penPILImage = Image.open(r"C:\Users\ankph\Code\alan-15112TP-main\src\writing-utensil-icons\pen-icon.png")
-        penPILImgAdjusted = penPILImage.resize((app.iconWidth, app.iconHeight))
-        self.cmuPenImgFinal = CMUImage(penPILImgAdjusted )
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/pen-icon-1.jpg?raw=true'
+        penPILImage = loadPilImage(url)
+        penPILImgResize = penPILImage.resize((app.iconWidth, app.iconHeight))
+        penPILImgAdjusted = addRoundedCornersWithBG(penPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuPenImgFinal = CMUImage(penPILImgAdjusted)
+
+class Highlighter:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.highlighterMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/highlighter-icon-2.jpg?raw=true'
+        highlighterPILImage = loadPilImage(url)
+        highlighterPILImgResize = highlighterPILImage.resize((app.iconWidth, app.iconHeight))
+        highlighterPILImgAdjusted = addRoundedCornersWithBG(highlighterPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuHighlighterImgFinal = CMUImage(highlighterPILImgAdjusted)
+
+class Eraser:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.eraserMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/eraser-icon.jpg?raw=true'
+        eraserPILImage = loadPilImage(url)
+        eraserPILImgResize = eraserPILImage.resize((app.iconWidth, app.iconHeight))
+        eraserPILImgAdjusted = addRoundedCornersWithBG(eraserPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuEraserImgFinal = CMUImage(eraserPILImgAdjusted)
+
+
+
 
 def loadPilImage(url):
     # Loads a PIL image from a url
@@ -30,6 +74,30 @@ def loadPilImage(url):
 def makePilImage(imageWidth, imageHeight, bgColor):
     # Manually create a new PIL Image w/ given bg color:
     return Image.new('RGBA', (imageWidth, imageHeight), bgColor)
+
+# ---------------------------------------------------------------------------
+# ------- Heavily referenced ChatGPT to undertand L mode (grayscale), -------
+# ------- ImageOps, .putalpha, and .paste                             -------
+# ---------------------------------------------------------------------------                          
+def addRoundedCorners(image, radius):
+    # Create a mask for the rounded corners
+    mask = Image.new("L", image.size, 0)  # L mode = grayscale
+    draw = ImageDraw.Draw(mask)
+    draw.rounded_rectangle((0, 0) + image.size, radius=radius, fill=255)
+    
+    # Apply the rounded corners mask to the image
+    rounded_image = ImageOps.fit(image, image.size)
+    rounded_image.putalpha(mask)
+    
+    return rounded_image
+
+def addRoundedCornersWithBG(image, radius, bgColor):
+    roundedImg = addRoundedCorners(image, radius)
+    bg = Image.new("RGBA", image.size, bgColor)
+    bg.paste(roundedImg, (0, 0), roundedImg)
+    return bg
+# --------------------------------------------------------------------------- 
+# --------------------------------------------------------------------------- 
 
 def makeCursorLines(pilImage):
     draw = ImageDraw.Draw(pilImage)
@@ -82,7 +150,7 @@ def onAppStart(app):
     app.iconWidth = rounded(spacingBtwIcons * 0.8)
     app.iconHeight = rounded(app.toolBarHeight * 0.8)
 
-    app.writingTools = [Pen(app)]
+    app.writingTools = [Pencil(app), Pen(app), Highlighter(app)]
     pass
 
 def getWritingUtensilSelection(app, mouseX, mouseY):
