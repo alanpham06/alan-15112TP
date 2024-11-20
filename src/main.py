@@ -19,7 +19,7 @@ class Line:
 class Pen:
     def __init__(self, app):
         self.penMode = False
-        penPILImage = Image.open(r"C:\Users\ankph\Code\alan-15112TP-main\src\writing-utensil-icon\pen-icon.png")
+        penPILImage = Image.open(r"C:\Users\ankph\Code\alan-15112TP-main\src\writing-utensil-icons\pen-icon.png")
         penPILImgAdjusted = penPILImage.resize((app.iconWidth, app.iconHeight))
         self.cmuPenImgFinal = CMUImage(penPILImgAdjusted )
 
@@ -68,7 +68,8 @@ def onAppStart(app):
     app.toolBarY = rounded(app.height * 0.01)
     app.toolBarWidth = rounded(app.width * 0.8)
     app.toolBarHeight = rounded(app.height * 0.1)
-    app.toolBarColor = 'slateGray'
+    app.toolBarColor = 'lightGray'
+    app.toolBarBGColor = 'silver'
 
     # Writing utensils icons in tool bar
     app.iconUpperLeftCorners = []
@@ -95,6 +96,7 @@ def getWritingUtensilSelection(app, mouseX, mouseY):
 
 def redrawAll(app):
     # Draw tool bar
+    drawRect(app.toolBarX, app.toolBarY-5, app.toolBarWidth+5, app.toolBarHeight+5, fill=app.toolBarBGColor)
     drawRect(app.toolBarX, app.toolBarY, app.toolBarWidth, app.toolBarHeight, fill=app.toolBarColor)
     # Draw writing utensil icons in tool bar
     for leftX, topY in app.iconUpperLeftCorners:
