@@ -15,6 +15,18 @@ class Line:
     def __repr__(self):
         return f'Line from ({self.x0}, {self.y0}) to ({self.x1}, {self.y1})'
     
+# Create classes for each writing utensil
+class Pen:
+    def __init__(self, app):
+        self.penMode = False
+        penPILImage = Image.open(r"C:\Users\ankph\Code\alan-15112TP-main\src\writing-utensil-icon\pen-icon.png")
+        penPILImgAdjusted = penPILImage.resize((app.iconWidth, app.iconHeight))
+        self.cmuPenImgFinal = CMUImage(penPILImgAdjusted )
+
+def loadPilImage(url):
+    # Loads a PIL image from a url
+    return Image.open(urlopen(url)) 
+
 def makePilImage(imageWidth, imageHeight, bgColor):
     # Manually create a new PIL Image w/ given bg color:
     return Image.new('RGBA', (imageWidth, imageHeight), bgColor)
@@ -27,6 +39,14 @@ def makeCursorLines(pilImage):
     draw.line((0, imageHeight//2, imageWidth, imageHeight//2), width=3, fill='black')
 
 def onAppStart(app):
+    # Line spacing logic
+    app.absXDiff = 1
+    app.absYDiff = 1
+
+    # States of drawing modes
+    app.penMode = False
+    app.penIcon = 0
+
     # Cursor properties
     app.cursorX, app.cursorY = app.width//2, app.height//2
     app.cursNewX, app.cursNewY = None, None
@@ -45,15 +65,42 @@ def onAppStart(app):
 
     # Tool bar properties
     app.toolBarX = rounded(app.width * 0.1)
-    app.toolBarY = 10
+    app.toolBarY = rounded(app.height * 0.01)
     app.toolBarWidth = rounded(app.width * 0.8)
     app.toolBarHeight = rounded(app.height * 0.1)
     app.toolBarColor = 'slateGray'
+
+    # Writing utensils icons in tool bar
+    app.iconUpperLeftCorners = []
+    numOfIcons = 9
+    for i in range(numOfIcons):
+        spacingBtwIcons = rounded(app.toolBarWidth/numOfIcons)
+        cornerX = app.toolBarX + rounded(app.toolBarX * 0.1)
+        cornerY = app.toolBarY + rounded(app.toolBarY * 0.8)
+        app.iconUpperLeftCorners.append((cornerX + (i * spacingBtwIcons), cornerY))
+    app.iconWidth = rounded(spacingBtwIcons * 0.8)
+    app.iconHeight = rounded(app.toolBarHeight * 0.8)
+
+    app.writingTools = [Pen(app)]
     pass
+
+def getWritingUtensilSelection(app, mouseX, mouseY):
+    for i in range(len(app.iconUpperLeftCorners)):
+        left, top = app.iconUpperLeftCorners[i]
+        right = left + app.iconWidth
+        bottom = top + app.iconHeight
+        if (mouseX > left) and (mouseX < right) and (mouseY < bottom) and (mouseY > top):
+            return i
+    return None
 
 def redrawAll(app):
     # Draw tool bar
     drawRect(app.toolBarX, app.toolBarY, app.toolBarWidth, app.toolBarHeight, fill=app.toolBarColor)
+    # Draw writing utensil icons in tool bar
+    for leftX, topY in app.iconUpperLeftCorners:
+        drawImage(app.writingTools[0].cmuPenImgFinal, leftX, topY)
+        if app.penMode:
+            drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
 
     # Draw cursor
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
@@ -71,16 +118,19 @@ def redrawAll(app):
     pass
 
 def onMousePress(app, mouseX, mouseY):
+    if getWritingUtensilSelection(app, mouseX, mouseY) == app.penIcon:
+        app.penMode = not app.penMode
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
-    # Drawing continuous lines logic
-    app.x1, app.y1 = mouseX, mouseY
-    if (abs(app.cursorX - app.x1) > 3) or (abs(app.cursorY - app.y1) > 3):
-        tempLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
-        app.allLines.append(tempLine)
-        app.cursorX, app.cursorY = mouseX, mouseY
-        app.x1, app.y1 = None, None
+    if app.penMode:
+        # Drawing continuous lines logic
+        app.x1, app.y1 = mouseX, mouseY
+        if (abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff):
+            tempLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            app.allLines.append(tempLine)
+            app.cursorX, app.cursorY = mouseX, mouseY
+            app.x1, app.y1 = None, None
     pass
 
 def onMouseMove(app, mouseX, mouseY):
@@ -88,9 +138,10 @@ def onMouseMove(app, mouseX, mouseY):
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
-    app.allObjects.append(app.allLines)
-    app.allLines = []
-    app.curorsX, app.cursorY = mouseX, mouseY
+    if app.penMode:
+        app.allObjects.append(app.allLines)
+        app.allLines = []
+        app.curorsX, app.cursorY = mouseX, mouseY
     pass
 
 def main():
