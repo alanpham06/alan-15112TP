@@ -19,7 +19,7 @@ class Line:
 class Pencil:
     def __init__(self, app):
          # Eventually used to check if mode is active or not
-        self.pencilMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/pencil-icon.jpg?raw=true'
@@ -31,7 +31,7 @@ class Pencil:
 class Pen:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.penMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/pen-icon-1.jpg?raw=true'
@@ -43,7 +43,7 @@ class Pen:
 class Highlighter:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.highlighterMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/highlighter-icon-2.jpg?raw=true'
@@ -55,7 +55,7 @@ class Highlighter:
 class Eraser:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.eraserMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/eraser-icon.jpg?raw=true'
@@ -79,7 +79,7 @@ class Ruler:
 class Lasso:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.lassoMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/lasso-icon-2.jpg?raw=true'
@@ -91,7 +91,7 @@ class Lasso:
 class Lasso:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.lassoMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/lasso-icon-2.jpg?raw=true'
@@ -103,7 +103,7 @@ class Lasso:
 class PreloadedShapesTool:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.preloadedShapesToolMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/preloaded-shapes-icon.jpg?raw=true'
@@ -115,7 +115,7 @@ class PreloadedShapesTool:
 class ShapeAutocorrect:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.shapeAutocorrectMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/shape-autocorrect-icon-3.jpg?raw=true'
@@ -181,8 +181,7 @@ def onAppStart(app):
     app.absYDiff = 1
 
     # States of drawing modes
-    app.penMode = False
-    app.penIcon = 0
+    app.selectedWritingTool = None
 
     # Cursor properties
     app.cursorX, app.cursorY = app.width//2, app.height//2
@@ -240,7 +239,7 @@ def redrawAll(app):
     for i in range(len(app.iconUpperLeftCorners)):
         leftX, topY = app.iconUpperLeftCorners[i]
         drawImage(app.writingTools[i].cmuImgFinal, leftX, topY)
-        if app.penMode:
+        if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
             drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
 
     # Draw cursor
@@ -259,12 +258,14 @@ def redrawAll(app):
     pass
 
 def onMousePress(app, mouseX, mouseY):
-    if getWritingUtensilSelection(app, mouseX, mouseY) == app.penIcon:
-        app.penMode = not app.penMode
+    if getWritingUtensilSelection(app, mouseX, mouseY) != None:
+        selectedIndx = getWritingUtensilSelection(app, mouseX, mouseY)
+        app.selectedWritingTool = app.writingTools[selectedIndx]
+        app.selectedWritingTool.mode = not app.selectedWritingTool.mode
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
-    if app.penMode:
+    if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
         # Drawing continuous lines logic
         app.x1, app.y1 = mouseX, mouseY
         if (abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff):
@@ -279,7 +280,7 @@ def onMouseMove(app, mouseX, mouseY):
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
-    if app.penMode:
+    if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
         app.allObjects.append(app.allLines)
         app.allLines = []
         app.curorsX, app.cursorY = mouseX, mouseY
