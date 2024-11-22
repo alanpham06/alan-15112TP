@@ -26,7 +26,7 @@ class Pencil:
         pencilPILImage = loadPilImage(url)
         pencilPILImgResize = pencilPILImage.resize((app.iconWidth, app.iconHeight))
         pencilPILImgAdjusted = addRoundedCornersWithBG(pencilPILImgResize, 20, (0, 0, 0, 0))
-        self.cmuPencilImgFinal = CMUImage(pencilPILImgAdjusted)
+        self.cmuImgFinal = CMUImage(pencilPILImgAdjusted)
 
 class Pen:
     def __init__(self, app):
@@ -38,7 +38,7 @@ class Pen:
         penPILImage = loadPilImage(url)
         penPILImgResize = penPILImage.resize((app.iconWidth, app.iconHeight))
         penPILImgAdjusted = addRoundedCornersWithBG(penPILImgResize, 20, (0, 0, 0, 0))
-        self.cmuPenImgFinal = CMUImage(penPILImgAdjusted)
+        self.cmuImgFinal = CMUImage(penPILImgAdjusted)
 
 class Highlighter:
     def __init__(self, app):
@@ -50,7 +50,7 @@ class Highlighter:
         highlighterPILImage = loadPilImage(url)
         highlighterPILImgResize = highlighterPILImage.resize((app.iconWidth, app.iconHeight))
         highlighterPILImgAdjusted = addRoundedCornersWithBG(highlighterPILImgResize, 20, (0, 0, 0, 0))
-        self.cmuHighlighterImgFinal = CMUImage(highlighterPILImgAdjusted)
+        self.cmuImgFinal = CMUImage(highlighterPILImgAdjusted)
 
 class Eraser:
     def __init__(self, app):
@@ -62,10 +62,79 @@ class Eraser:
         eraserPILImage = loadPilImage(url)
         eraserPILImgResize = eraserPILImage.resize((app.iconWidth, app.iconHeight))
         eraserPILImgAdjusted = addRoundedCornersWithBG(eraserPILImgResize, 20, (0, 0, 0, 0))
-        self.cmuEraserImgFinal = CMUImage(eraserPILImgAdjusted)
+        self.cmuImgFinal = CMUImage(eraserPILImgAdjusted)
 
+class Ruler:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.rulerMode = False
 
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/ruler-icon.jpg?raw=true'
+        rulerPILImage = loadPilImage(url)
+        rulerPILImgResize = rulerPILImage.resize((app.iconWidth, app.iconHeight))
+        rulerPILImgAdjusted = addRoundedCornersWithBG(rulerPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuImgFinal = CMUImage(rulerPILImgAdjusted)
 
+class Lasso:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.lassoMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/lasso-icon-2.jpg?raw=true'
+        lassoPILImage = loadPilImage(url)
+        lassoPILImgResize = lassoPILImage.resize((app.iconWidth, app.iconHeight))
+        lassoPILImgAdjusted = addRoundedCornersWithBG(lassoPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuImgFinal = CMUImage(lassoPILImgAdjusted)
+
+class Lasso:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.lassoMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/lasso-icon-2.jpg?raw=true'
+        lassoPILImage = loadPilImage(url)
+        lassoPILImgResize = lassoPILImage.resize((app.iconWidth, app.iconHeight))
+        lassoPILImgAdjusted = addRoundedCornersWithBG(lassoPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuImgFinal = CMUImage(lassoPILImgAdjusted)
+
+class PreloadedShapesTool:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.preloadedShapesToolMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/preloaded-shapes-icon.jpg?raw=true'
+        preloadedShapesToolPILImage = loadPilImage(url)
+        preloadedShapesToolPILImgResize = preloadedShapesToolPILImage.resize((app.iconWidth, app.iconHeight))
+        preloadedShapesToolPILImgAdjusted = addRoundedCornersWithBG(preloadedShapesToolPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuImgFinal = CMUImage(preloadedShapesToolPILImgAdjusted)
+
+class ShapeAutocorrect:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.shapeAutocorrectMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/shape-autocorrect-icon-3.jpg?raw=true'
+        shapeAutocorrectPILImage = loadPilImage(url)
+        shapeAutocorrectPILImgResize = shapeAutocorrectPILImage.resize((app.iconWidth, app.iconHeight))
+        shapeAutocorrectPILImgAdjusted = addRoundedCornersWithBG(shapeAutocorrectPILImgResize, 20, (0, 0, 0, 0))
+        self.cmuImgFinal = CMUImage(shapeAutocorrectPILImgAdjusted)
+
+class PageMode:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.pageModeMode = False
+
+        # Initialize image 
+        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/page-icon-2.jpg?raw=true'
+        pageModePILImage = loadPilImage(url)
+        pageModePILImgResize = pageModePILImage.resize((app.iconWidth, app.iconHeight))
+        pageModePILImgAdjusted = addRoundedCornersWithBG(pageModePILImgResize, 20, (0, 0, 0, 0))
+        self.cmuImgFinal = CMUImage(pageModePILImgAdjusted)
 
 def loadPilImage(url):
     # Loads a PIL image from a url
@@ -150,7 +219,8 @@ def onAppStart(app):
     app.iconWidth = rounded(spacingBtwIcons * 0.8)
     app.iconHeight = rounded(app.toolBarHeight * 0.8)
 
-    app.writingTools = [Pencil(app), Pen(app), Highlighter(app)]
+    app.writingTools = ([Pencil(app), Pen(app), Highlighter(app), Eraser(app), Ruler(app), 
+                         Lasso(app), PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app)])
     pass
 
 def getWritingUtensilSelection(app, mouseX, mouseY):
@@ -167,8 +237,9 @@ def redrawAll(app):
     drawRect(app.toolBarX, app.toolBarY-5, app.toolBarWidth+5, app.toolBarHeight+5, fill=app.toolBarBGColor)
     drawRect(app.toolBarX, app.toolBarY, app.toolBarWidth, app.toolBarHeight, fill=app.toolBarColor)
     # Draw writing utensil icons in tool bar
-    for leftX, topY in app.iconUpperLeftCorners:
-        drawImage(app.writingTools[0].cmuPenImgFinal, leftX, topY)
+    for i in range(len(app.iconUpperLeftCorners)):
+        leftX, topY = app.iconUpperLeftCorners[i]
+        drawImage(app.writingTools[i].cmuImgFinal, leftX, topY)
         if app.penMode:
             drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
 
