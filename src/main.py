@@ -27,6 +27,10 @@ class Pencil:
         pencilPILImgResize = pencilPILImage.resize((app.iconWidth, app.iconHeight))
         pencilPILImgAdjusted = addRoundedCornersWithBG(pencilPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(pencilPILImgAdjusted)
+    
+    def __eq__(self, other):
+        return isinstance(other, Pencil)
+    
 
 class Pen:
     def __init__(self, app):
@@ -40,6 +44,9 @@ class Pen:
         penPILImgAdjusted = addRoundedCornersWithBG(penPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(penPILImgAdjusted)
 
+    def __eq__(self, other):
+        return isinstance(other, Pen)
+
 class Highlighter:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
@@ -52,6 +59,9 @@ class Highlighter:
         highlighterPILImgAdjusted = addRoundedCornersWithBG(highlighterPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(highlighterPILImgAdjusted)
 
+    def __eq__(self, other):
+        return isinstance(other, Highlighter)
+
 class Eraser:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
@@ -63,11 +73,14 @@ class Eraser:
         eraserPILImgResize = eraserPILImage.resize((app.iconWidth, app.iconHeight))
         eraserPILImgAdjusted = addRoundedCornersWithBG(eraserPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(eraserPILImgAdjusted)
+    
+    def __eq__(self, other):
+        return isinstance(other, Eraser)
 
 class Ruler:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.rulerMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/ruler-icon.jpg?raw=true'
@@ -76,17 +89,8 @@ class Ruler:
         rulerPILImgAdjusted = addRoundedCornersWithBG(rulerPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(rulerPILImgAdjusted)
 
-class Lasso:
-    def __init__(self, app):
-        # Eventually used to check if mode is active or not
-        self.mode = False
-
-        # Initialize image 
-        url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/lasso-icon-2.jpg?raw=true'
-        lassoPILImage = loadPilImage(url)
-        lassoPILImgResize = lassoPILImage.resize((app.iconWidth, app.iconHeight))
-        lassoPILImgAdjusted = addRoundedCornersWithBG(lassoPILImgResize, 20, (0, 0, 0, 0))
-        self.cmuImgFinal = CMUImage(lassoPILImgAdjusted)
+    def __eq__(self, other):
+        return isinstance(other, Ruler)
 
 class Lasso:
     def __init__(self, app):
@@ -99,6 +103,9 @@ class Lasso:
         lassoPILImgResize = lassoPILImage.resize((app.iconWidth, app.iconHeight))
         lassoPILImgAdjusted = addRoundedCornersWithBG(lassoPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(lassoPILImgAdjusted)
+
+    def __eq__(self, other):
+        return isinstance(other, Lasso)
 
 class PreloadedShapesTool:
     def __init__(self, app):
@@ -111,6 +118,9 @@ class PreloadedShapesTool:
         preloadedShapesToolPILImgResize = preloadedShapesToolPILImage.resize((app.iconWidth, app.iconHeight))
         preloadedShapesToolPILImgAdjusted = addRoundedCornersWithBG(preloadedShapesToolPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(preloadedShapesToolPILImgAdjusted)
+    
+    def __eq__(self, other):
+        return isinstance(other, PreloadedShapesTool)
 
 class ShapeAutocorrect:
     def __init__(self, app):
@@ -123,11 +133,14 @@ class ShapeAutocorrect:
         shapeAutocorrectPILImgResize = shapeAutocorrectPILImage.resize((app.iconWidth, app.iconHeight))
         shapeAutocorrectPILImgAdjusted = addRoundedCornersWithBG(shapeAutocorrectPILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(shapeAutocorrectPILImgAdjusted)
+    
+    def __eq__(self, other):
+        return isinstance(other, ShapeAutocorrect)
 
 class PageMode:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
-        self.pageModeMode = False
+        self.mode = False
 
         # Initialize image 
         url = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/page-icon-2.jpg?raw=true'
@@ -135,6 +148,9 @@ class PageMode:
         pageModePILImgResize = pageModePILImage.resize((app.iconWidth, app.iconHeight))
         pageModePILImgAdjusted = addRoundedCornersWithBG(pageModePILImgResize, 20, (0, 0, 0, 0))
         self.cmuImgFinal = CMUImage(pageModePILImgAdjusted)
+    
+    def __eq__(self, other):
+        return isinstance(other, PageMode)
 
 def loadPilImage(url):
     # Loads a PIL image from a url
@@ -239,8 +255,11 @@ def redrawAll(app):
     for i in range(len(app.iconUpperLeftCorners)):
         leftX, topY = app.iconUpperLeftCorners[i]
         drawImage(app.writingTools[i].cmuImgFinal, leftX, topY)
-        if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
-            drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
+    # Ensures selected tool is highlighted
+    if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
+        indx = app.writingTools.index(app.selectedWritingTool)
+        leftX, topY = app.iconUpperLeftCorners[indx]
+        drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
 
     # Draw cursor
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
@@ -265,7 +284,7 @@ def onMousePress(app, mouseX, mouseY):
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
-    if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
+    if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
         # Drawing continuous lines logic
         app.x1, app.y1 = mouseX, mouseY
         if (abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff):
