@@ -306,6 +306,8 @@ def onMouseRelease(app, mouseX, mouseY):
     pass
 
 def main():
+    # app.run()
     runApp(width=1000, height=800)
 
 main()
+
