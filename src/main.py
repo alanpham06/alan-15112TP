@@ -216,11 +216,12 @@ def makeCursorLines(pilImage):
 
 def onAppStart(app):
     # Line spacing logic
-    app.absXDiff = 1
-    app.absYDiff = 1
+    app.absXDiff = 3
+    app.absYDiff = 3
 
     # States of drawing modes
     app.selectedWritingTool = None
+    app.previousWritingTool = None
 
     # Cursor properties
     app.cursorX, app.cursorY = app.width//2, app.height//2
@@ -295,24 +296,35 @@ def redrawAll(app):
         drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
     
     # Maintains all of the things already drawn on paper
-    for item in app.allObjects:
-        for line in item:
-            x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
-            drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
+    for line in app.allObjects:
+        x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
+        drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
     pass
 
 def onMousePress(app, mouseX, mouseY):
-    if getWritingUtensilSelection(app, mouseX, mouseY) != None:
+    if (getWritingUtensilSelection(app, mouseX, mouseY) != None) and (app.selectedWritingTool == None):
         selectedIndx = getWritingUtensilSelection(app, mouseX, mouseY)
         app.selectedWritingTool = app.writingTools[selectedIndx]
         app.selectedWritingTool.mode = not app.selectedWritingTool.mode
+    elif (getWritingUtensilSelection(app, mouseX, mouseY) != None) and (app.selectedWritingTool != None):
+        selectedIndx = getWritingUtensilSelection(app, mouseX, mouseY)
+        currWritingTool = app.writingTools[selectedIndx]
+        if currWritingTool == app.selectedWritingTool:
+            app.selectedWritingTool.mode = not app.selectedWritingTool.mode
+            app.selectedWritingTool = None
+        else:
+            app.previousWritingTool = app.selectedWritingTool
+            app.selectedWritingTool = currWritingTool
+            app.previousWritingTool.mode = not app.previousWritingTool.mode
+            app.selectedWritingTool.mode = not app.selectedWritingTool.mode
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
     if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
         # Drawing continuous lines logic
         app.x1, app.y1 = mouseX, mouseY
-        if (abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff):
+        if (((abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff)) and 
+            ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) or (app.x1 > app.toolBarX+app.toolBarWidth))):
             tempLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             app.allLines.append(tempLine)
             app.cursorX, app.cursorY = mouseX, mouseY
@@ -321,14 +333,23 @@ def onMouseDrag(app, mouseX, mouseY):
 
 def onMouseMove(app, mouseX, mouseY):
     app.cursorX, app.cursorY = mouseX, mouseY
+    if (app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode):
+        for line in app.allObjects:
+            x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
+            if ((distance(x0, y0, mouseX, mouseY) < app.cursorWidth//2) or 
+                (distance(x1, y1, mouseX, mouseY) < app.cursorWidth//2)):
+                app.allObjects.remove(line)
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
-    if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
-        app.allObjects.append(app.allLines)
+    if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
+        app.allObjects.extend(app.allLines)
         app.allLines = []
         app.curorsX, app.cursorY = mouseX, mouseY
     pass
+
+def distance(x0, y0, x1, y1):
+    return ((x1-x0)**2 + (y1-y0)**2)**0.5
 
 def main():
     runApp(width=1000, height=800)
