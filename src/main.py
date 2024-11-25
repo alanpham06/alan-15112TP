@@ -275,7 +275,6 @@ def onAppStart(app):
     # Shape Autocorrect Trackers
     app.startX = None
     app.startY = None
-    app.numOfTurns = 0
     app.traceLines = []
     app.focalPoints = []
     app.focalPointRadius = 5
@@ -328,7 +327,7 @@ def redrawAll(app):
             x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
             drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth)
         else:
-            drawPolygon(*item)
+            drawPolygon(*item, fill='white', border)
     
     for point in app.focalPoints:
         cx, cy = point
@@ -377,11 +376,12 @@ def onMouseDrag(app, mouseX, mouseY):
 def onMouseMove(app, mouseX, mouseY):
     app.cursorX, app.cursorY = mouseX, mouseY
     if (app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode):
-        for line in app.allObjects:
-            x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
-            if ((distance(x0, y0, mouseX, mouseY) < app.cursorWidth//2) or 
-                (distance(x1, y1, mouseX, mouseY) < app.cursorWidth//2)):
-                app.allObjects.remove(line)
+        for item in app.allObjects:
+            if isinstance(item, Line):
+                x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
+                if ((distance(x0, y0, mouseX, mouseY) < app.cursorWidth//2) or 
+                    (distance(x1, y1, mouseX, mouseY) < app.cursorWidth//2)):
+                    app.allObjects.remove(item)
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
@@ -415,12 +415,22 @@ def onMouseRelease(app, mouseX, mouseY):
                 app.allObjects.append(currShape)
             elif numOfFocalPoints > 2:
                 app.allObjects.append(unpackedPoints)
-            # Reset Tracker Vars
-            app.focalPoints = []
-            app.traceLines = []
-            app.startX, app.startY = None, None
+            resetShapeAutocorrectVars(app)
+
     app.curorsX, app.cursorY = mouseX, mouseY
     pass
+
+def onKeyPress(app, key):
+    if ((key == 'r') and (app.selectedWritingTool == ShapeAutocorrect(app)) and 
+        (app.selectedWritingTool.mode) and (app.traceLines != [])):
+        resetShapeAutocorrectVars(app)
+    pass
+
+def resetShapeAutocorrectVars(app):
+    app.focalPoints = []
+    app.traceLines = []
+    app.startX, app.startY = None, None
+
 
 def unpackTupleList(L):
     result = []
