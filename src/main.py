@@ -342,10 +342,20 @@ def onMouseMove(app, mouseX, mouseY):
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
+    if app.allLines != []:
+        firstLine = app.allLines[0]
+        x0, y0 = firstLine.x0, firstLine.y0
+        if distance(x0, y0, mouseX, mouseY) < 5:
+            print('Back to starting point')
+        else:
+            print('Fail')
+
     if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
+        # testing logic for shape autocorrect
         app.allObjects.extend(app.allLines)
         app.allLines = []
         app.curorsX, app.cursorY = mouseX, mouseY
+    
     pass
 
 def distance(x0, y0, x1, y1):
