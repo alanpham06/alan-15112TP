@@ -14,6 +14,13 @@ class Line:
     
     def __repr__(self):
         return f'Line from ({self.x0}, {self.y0}) to ({self.x1}, {self.y1})'
+
+class Circle:
+    def __init__(self, cx, cy, r):
+        self.cx = cx
+        self.cy = cy
+        self.r = r
+        self.fill = 'black'
     
 # Create classes for each writing utensil
 class Pencil:
@@ -271,6 +278,7 @@ def onAppStart(app):
     app.numOfTurns = 0
     app.traceLines = []
     app.focalPoints = []
+    app.focalPointRadius = 5
     pass
 
 def getWritingUtensilSelection(app, mouseX, mouseY):
@@ -312,9 +320,19 @@ def redrawAll(app):
             drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
     
     # Maintains all of the things already drawn on paper
-    for line in app.allObjects:
-        x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
-        drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
+    for item in app.allObjects:
+        if isinstance(item, Circle):
+            cx, cy, r = item.cx, item.cy, item.r
+            drawCircle(cx, cy, r, fill=item.fill)
+        elif isinstance(item, Line):
+            x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
+            drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth)
+        else:
+            drawPolygon(*item)
+    
+    for point in app.focalPoints:
+        cx, cy = point
+        drawCircle(cx, cy, app.focalPointRadius, fill='green')
     pass
 
 def onMousePress(app, mouseX, mouseY):
@@ -338,24 +356,16 @@ def onMousePress(app, mouseX, mouseY):
 def onMouseDrag(app, mouseX, mouseY):
     app.x1, app.y1 = mouseX, mouseY
 
-    if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
-        # Drawing continuous lines logic
-        if (((abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff)) and 
-            ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) or (app.x1 > app.toolBarX+app.toolBarWidth))):
+    # Drawing continuous lines logic
+    if (((abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff)) and 
+        ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) or (app.x1 > app.toolBarX+app.toolBarWidth))):
+        if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
             tempLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             app.allLines.append(tempLine)
-            app.cursorX, app.cursorY = mouseX, mouseY
-            app.x1, app.y1 = None, None
-
-    if (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
-        # Shows preview of drawing
-        if app.traceLines == []:
-            app.startX = app.cursorX
-            app.startY = app.cursorY
-            app.focalPoints.append((app.startX, app.startY))
-        
-        if (((abs(app.cursorX - app.x1) > app.absXDiffAuto) or (abs(app.cursorY - app.y1) > app.absYDiffAuto)) and 
-            ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) or (app.x1 > app.toolBarX+app.toolBarWidth))):
+        elif (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
+            if app.traceLines == []:
+                app.startX = app.cursorX
+                app.startY = app.cursorY
             tracerLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             tracerLine.color = 'lightSlateGray'
             app.traceLines.append(tracerLine)
@@ -378,38 +388,52 @@ def onMouseRelease(app, mouseX, mouseY):
     if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
         app.allObjects.extend(app.allLines)
         app.allLines = []
-    
-    # Still working on Shape autocorrect logic
-    if (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
+    elif ((app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode)
+         and (app.traceLines != [])):
+        app.focalPoints.append((mouseX, mouseY))
         print(app.startX, app.startY)
-        if (mouseY > app.toolBarY+app.toolBarHeight):
-            app.focalPoints.append((mouseX, mouseY))
-            if len(app.focalPoints) > 2:
-                currX, currY = app.focalPoints[-1]
-                if distance(app.startX, app.startY, currX, currY) < 8:
-                    print(app.focalPoints)
-                    print(app.focalPoints[-1])
-                    app.traceLines = []
-        app.focalPoints = []
-        if app.traceLines == []:
+        if distance(app.startX, app.startY, mouseX, mouseY) <= app.focalPointRadius:
+            numOfFocalPoints = len(app.focalPoints)
+            unpackedPoints = unpackTupleList(app.focalPoints)
+            if numOfFocalPoints == 1:
+                farDist = None
+                farPtX, farPtY = None, None
+                focalX, focalY = app.focalPoints[0]
+                for line in app.traceLines:
+                    currX, currY = line.x1, line.y1
+                    currDist = distance(currX, currY, focalX, focalY)
+                    if (farDist == None) or (currDist > farDist):
+                        farDist = currDist
+                        farPtX, farPtY = currX, currY
+                radius = farDist//2
+                cx, cy = midpoint(focalX, focalY, farPtX, farPtY)
+                newCircle = Circle(cx, cy, radius)
+                app.allObjects.append(newCircle)
+            elif numOfFocalPoints == 2:
+                x0, y0, x1, y1 = unpackedPoints
+                currShape = Line(x0, y0, x1, y1)
+                app.allObjects.append(currShape)
+            elif numOfFocalPoints > 2:
+                app.allObjects.append(unpackedPoints)
+            # Reset Tracker Vars
+            app.focalPoints = []
+            app.traceLines = []
             app.startX, app.startY = None, None
-        pass
-    
-    print(app.focalPoints)
-
     app.curorsX, app.cursorY = mouseX, mouseY
     pass
 
-def findDirection(x0, y0, x1, y1):
-    epsilon = 2
-    if (x1 - x0 > 0) and abs(y1 - y0) <= epsilon:
-        return 'right'
-    elif (x1 - x0 < 0) and abs(y1 - y0) <= epsilon:
-        return 'left'
-    elif abs(x1 - x0) <= epsilon and (y1 - y0 < 0):
-        return 'up'
-    elif abs(x1 - x0) <= epsilon and (y1 - y0 > 0):
-        return 'down'
+def unpackTupleList(L):
+    result = []
+    for tuple in L:
+        val0, val1 = tuple
+        result.append(val0)
+        result.append(val1)
+    return result
+    
+def midpoint(x0, y0, x1, y1):
+    midptX = rounded((x0 + x1) / 2)
+    midptY = rounded((y0 + y1) / 2)
+    return midptX, midptY
 
 
 def distance(x0, y0, x1, y1):
