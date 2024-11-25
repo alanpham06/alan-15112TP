@@ -216,8 +216,11 @@ def makeCursorLines(pilImage):
 
 def onAppStart(app):
     # Line spacing logic
-    app.absXDiff = 3
-    app.absYDiff = 3
+    app.absXDiff = 1
+    app.absYDiff = 1
+    # Shape Autocorrect Spacing Logic
+    app.absXDiffAuto = 3
+    app.absYDiffAuto = 3
 
     # States of drawing modes
     app.selectedWritingTool = None
@@ -261,6 +264,13 @@ def onAppStart(app):
     app.writingTools = ([Pencil(app), Pen(app), Highlighter(app), Eraser(app), Ruler(app), 
                          Lasso(app), PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app)])
     app.writingToolsIcons = allWritingToolIcons(app)
+
+    # Shape Autocorrect Trackers
+    app.startX = None
+    app.startY = None
+    app.numOfTurns = 0
+    app.traceLines = []
+    app.focalPoints = []
     pass
 
 def getWritingUtensilSelection(app, mouseX, mouseY):
@@ -290,10 +300,16 @@ def redrawAll(app):
     # Draw cursor
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
     
-    # Draw all of the lines
-    for line in app.allLines:
-        x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
-        drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
+    if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
+        # Draw all of the lines
+        for line in app.allLines:
+            x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
+            drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
+    
+    if (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
+        for line in app.traceLines:
+            x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
+            drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
     
     # Maintains all of the things already drawn on paper
     for line in app.allObjects:
@@ -320,15 +336,32 @@ def onMousePress(app, mouseX, mouseY):
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
+    app.x1, app.y1 = mouseX, mouseY
+
     if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
         # Drawing continuous lines logic
-        app.x1, app.y1 = mouseX, mouseY
         if (((abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff)) and 
             ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) or (app.x1 > app.toolBarX+app.toolBarWidth))):
             tempLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             app.allLines.append(tempLine)
             app.cursorX, app.cursorY = mouseX, mouseY
             app.x1, app.y1 = None, None
+
+    if (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
+        # Shows preview of drawing
+        if app.traceLines == []:
+            app.startX = app.cursorX
+            app.startY = app.cursorY
+            app.focalPoints.append((app.startX, app.startY))
+        
+        if (((abs(app.cursorX - app.x1) > app.absXDiffAuto) or (abs(app.cursorY - app.y1) > app.absYDiffAuto)) and 
+            ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) or (app.x1 > app.toolBarX+app.toolBarWidth))):
+            tracerLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            tracerLine.color = 'lightSlateGray'
+            app.traceLines.append(tracerLine)
+
+    app.cursorX, app.cursorY = mouseX, mouseY
+    app.x1, app.y1 = None, None
     pass
 
 def onMouseMove(app, mouseX, mouseY):
@@ -342,21 +375,42 @@ def onMouseMove(app, mouseX, mouseY):
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
-    if app.allLines != []:
-        firstLine = app.allLines[0]
-        x0, y0 = firstLine.x0, firstLine.y0
-        if distance(x0, y0, mouseX, mouseY) < 5:
-            print('Back to starting point')
-        else:
-            print('Fail')
-
     if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
-        # testing logic for shape autocorrect
         app.allObjects.extend(app.allLines)
         app.allLines = []
-        app.curorsX, app.cursorY = mouseX, mouseY
     
+    # Still working on Shape autocorrect logic
+    if (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
+        print(app.startX, app.startY)
+        if (mouseY > app.toolBarY+app.toolBarHeight):
+            app.focalPoints.append((mouseX, mouseY))
+            if len(app.focalPoints) > 2:
+                currX, currY = app.focalPoints[-1]
+                if distance(app.startX, app.startY, currX, currY) < 8:
+                    print(app.focalPoints)
+                    print(app.focalPoints[-1])
+                    app.traceLines = []
+        app.focalPoints = []
+        if app.traceLines == []:
+            app.startX, app.startY = None, None
+        pass
+    
+    print(app.focalPoints)
+
+    app.curorsX, app.cursorY = mouseX, mouseY
     pass
+
+def findDirection(x0, y0, x1, y1):
+    epsilon = 2
+    if (x1 - x0 > 0) and abs(y1 - y0) <= epsilon:
+        return 'right'
+    elif (x1 - x0 < 0) and abs(y1 - y0) <= epsilon:
+        return 'left'
+    elif abs(x1 - x0) <= epsilon and (y1 - y0 < 0):
+        return 'up'
+    elif abs(x1 - x0) <= epsilon and (y1 - y0 > 0):
+        return 'down'
+
 
 def distance(x0, y0, x1, y1):
     return ((x1-x0)**2 + (y1-y0)**2)**0.5
