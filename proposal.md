@@ -40,5 +40,6 @@ My primary plan for version control and backing up my code will be through my pe
 Tech List:
 - None / No external tech modules
 
-*OpenSketch Storyboard*:
+OpenSketch Storyboard:
+
 [Alan Pham - 15112 Storyboard](https://github.com/alanpham06/alan-15112TP/blob/main/Alan%20Pham%20-%2015112%20TP1%20Storyboard.pdf)
