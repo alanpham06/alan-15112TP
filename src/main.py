@@ -2,7 +2,7 @@ from cmu_graphics import *
 from urllib.request import urlopen
 from PIL import Image, ImageDraw, ImageOps
 
-# Create a line class that will help with connecting all of the points
+# Create classes for each kind of object that will be drawn on the board
 class Line:
     def __init__(self, x0, y0, x1, y1):
         self.x0 = x0
@@ -20,7 +20,24 @@ class Circle:
         self.cx = cx
         self.cy = cy
         self.r = r
-        self.fill = 'black'
+        self.fill = 'white'
+        self.border = 'black'
+        self.borderWidth = 5
+        self.opacity = 70
+    
+    def __repr__(self):
+        return f'Circle center:({self.cx},{self.cy}) radius:{self.r}'
+
+class Polygon:
+    def __init__(self, points):
+        self.points = points
+        self.fill = 'white'
+        self.border = 'black'
+        self.borderWidth = 5
+        self.opacity = 70
+    
+    def __repr__(self):
+        return f'Polygon with coordinates: {self.points}'
     
 # Create classes for each writing utensil
 class Pencil:
@@ -317,21 +334,24 @@ def redrawAll(app):
         for line in app.traceLines:
             x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
             drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
+        
+        for point in app.focalPoints:
+            cx, cy = point
+            drawCircle(cx, cy, app.focalPointRadius, fill='green')
     
     # Maintains all of the things already drawn on paper
     for item in app.allObjects:
         if isinstance(item, Circle):
             cx, cy, r = item.cx, item.cy, item.r
-            drawCircle(cx, cy, r, fill=item.fill)
+            drawCircle(cx, cy, r, fill=item.fill, border=item.border, 
+                       borderWidth=item.borderWidth, opacity=item.opacity)
         elif isinstance(item, Line):
             x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
             drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth)
-        else:
-            drawPolygon(*item, fill='white', border)
-    
-    for point in app.focalPoints:
-        cx, cy = point
-        drawCircle(cx, cy, app.focalPointRadius, fill='green')
+        elif isinstance(item, Polygon):
+            allPoints = item.points
+            drawPolygon(*allPoints, fill=item.fill, border=item.border, 
+                        borderWidth=item.borderWidth, opacity=item.opacity)
     pass
 
 def onMousePress(app, mouseX, mouseY):
@@ -391,30 +411,21 @@ def onMouseRelease(app, mouseX, mouseY):
     elif ((app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode)
          and (app.traceLines != [])):
         app.focalPoints.append((mouseX, mouseY))
-        print(app.startX, app.startY)
         if distance(app.startX, app.startY, mouseX, mouseY) <= app.focalPointRadius:
             numOfFocalPoints = len(app.focalPoints)
             unpackedPoints = unpackTupleList(app.focalPoints)
             if numOfFocalPoints == 1:
-                farDist = None
-                farPtX, farPtY = None, None
-                focalX, focalY = app.focalPoints[0]
-                for line in app.traceLines:
-                    currX, currY = line.x1, line.y1
-                    currDist = distance(currX, currY, focalX, focalY)
-                    if (farDist == None) or (currDist > farDist):
-                        farDist = currDist
-                        farPtX, farPtY = currX, currY
-                radius = farDist//2
-                cx, cy = midpoint(focalX, focalY, farPtX, farPtY)
+                cx, cy, radius = getCircleFeatures(app)
                 newCircle = Circle(cx, cy, radius)
                 app.allObjects.append(newCircle)
             elif numOfFocalPoints == 2:
                 x0, y0, x1, y1 = unpackedPoints
-                currShape = Line(x0, y0, x1, y1)
-                app.allObjects.append(currShape)
+                newLine = Line(x0, y0, x1, y1)
+                app.allObjects.append(newLine)
             elif numOfFocalPoints > 2:
-                app.allObjects.append(unpackedPoints)
+                newPolygon = Polygon(unpackedPoints)
+                print(newPolygon)
+                app.allObjects.append(newPolygon)
             resetShapeAutocorrectVars(app)
 
     app.curorsX, app.cursorY = mouseX, mouseY
@@ -431,6 +442,20 @@ def resetShapeAutocorrectVars(app):
     app.traceLines = []
     app.startX, app.startY = None, None
 
+# Helper functions used throughout the program
+def getCircleFeatures(app):
+    farDist = None
+    farPtX, farPtY = None, None
+    focalX, focalY = app.focalPoints[0]
+    for line in app.traceLines:
+        currX, currY = line.x1, line.y1
+        currDist = distance(currX, currY, focalX, focalY)
+        if (farDist == None) or (currDist > farDist):
+            farDist = currDist
+            farPtX, farPtY = currX, currY
+    radius = farDist//2
+    cx, cy = midpoint(focalX, focalY, farPtX, farPtY)
+    return cx, cy, radius
 
 def unpackTupleList(L):
     result = []
@@ -444,7 +469,6 @@ def midpoint(x0, y0, x1, y1):
     midptX = rounded((x0 + x1) / 2)
     midptY = rounded((y0 + y1) / 2)
     return midptX, midptY
-
 
 def distance(x0, y0, x1, y1):
     return ((x1-x0)**2 + (y1-y0)**2)**0.5
