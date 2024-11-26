@@ -402,6 +402,10 @@ def onMouseMove(app, mouseX, mouseY):
                 if ((distance(x0, y0, mouseX, mouseY) < app.cursorWidth//2) or 
                     (distance(x1, y1, mouseX, mouseY) < app.cursorWidth//2)):
                     app.allObjects.remove(item)
+            elif isinstance(item, Circle):
+                cx, cy, r = item.cx, item.cy, item.r
+                if (distance(cx, cy, mouseX, mouseY) < r):
+                    app.allObjects.remove(item)
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
@@ -424,7 +428,6 @@ def onMouseRelease(app, mouseX, mouseY):
                 app.allObjects.append(newLine)
             elif numOfFocalPoints > 2:
                 newPolygon = Polygon(unpackedPoints)
-                print(newPolygon)
                 app.allObjects.append(newPolygon)
             resetShapeAutocorrectVars(app)
 
