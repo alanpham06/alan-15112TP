@@ -406,6 +406,11 @@ def onMouseMove(app, mouseX, mouseY):
                 cx, cy, r = item.cx, item.cy, item.r
                 if (distance(cx, cy, mouseX, mouseY) < r):
                     app.allObjects.remove(item)
+            elif isinstance(item, Polygon):
+                cx, cy = findPolygonCenter(item.points)
+                polygonRadius = findPolygonRadius(cx, cy, item.points)
+                if distance(mouseX, mouseY, cx, cy) <= polygonRadius:
+                    app.allObjects.remove(item)
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
@@ -446,6 +451,28 @@ def resetShapeAutocorrectVars(app):
     app.startX, app.startY = None, None
 
 # Helper functions used throughout the program
+def findPolygonCenter(points):
+    totalX, numOfX = 0, 0
+    totalY, numOfY = 0, 0
+    for i in range(0, len(points), 2):
+        currX = points[i]
+        currY = points[i+1]
+        totalX += currX
+        numOfX += 1
+        totalY += currY
+        numOfY += 1
+    return rounded(totalX/numOfX), rounded(totalY/numOfY)
+
+def findPolygonRadius(cx, cy, points):
+    minDist = None
+    for i in range(0, len(points), 2):
+        currX = points[i]
+        currY = points[i+1]
+        currDist = distance(cx, cy, currX, currY)
+        if (minDist == None) or (currDist <= minDist):
+            minDist = currDist
+    return minDist
+
 def getCircleFeatures(app):
     farDist = None
     farPtX, farPtY = None, None
