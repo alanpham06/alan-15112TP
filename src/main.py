@@ -107,6 +107,10 @@ class Ruler:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
         self.mode = False
+        self.color = 'lightSkyBlue'
+        self.borderWidth = 2
+        self.opacity = 60
+        self.angle = 0
 
     def __eq__(self, other):
         return isinstance(other, Ruler)
@@ -244,6 +248,14 @@ def makeCursorLines(pilImage):
     draw.line((imageWidth//2, 0, imageWidth//2, imageHeight), width=3, fill='black')
     draw.line((0, imageHeight//2, imageWidth, imageHeight//2), width=3, fill='black')
 
+def makeRulerLines(pilImage):
+    draw = ImageDraw.Draw(pilImage)
+    imageWidth, imageHeight = pilImage.size
+    # Add the tallies to the ruler
+    for i in range(imageWidth):
+        if i%20 == 0:
+            draw.line((i, 0, i, imageHeight//4), width=3, fill='black')
+
 def onAppStart(app):
     # Line spacing logic
     app.absXDiff = 1
@@ -262,8 +274,8 @@ def onAppStart(app):
     app.cursorWidth = 15
     app.cursorHeight = 15
     # Initialize the cursor as PIL Image
-    bgColor = (0, 0, 0, 0)
-    drawCursor = makePilImage(app.cursorWidth, app.cursorHeight, bgColor)
+    cursorBgColor = (0, 0, 0, 0)
+    drawCursor = makePilImage(app.cursorWidth, app.cursorHeight, cursorBgColor)
     makeCursorLines(drawCursor)
     # Convert it into a CMU image
     app.cmuCursor = CMUImage(drawCursor)
@@ -310,6 +322,18 @@ def onAppStart(app):
     app.selectLines = []
     app.startPoint = []
     app.autoRadius = 10
+
+    # Ruler Properties
+    app.ruler = None
+    app.rulerCx = app.width//2
+    app.rulerCy = app.height//2
+    app.rulerWidth = rounded(((app.width**2) + (app.height**2))**0.5)
+    app.rulerHeight = 80
+    # Initialize the ruler as PIL Image
+    rulerBgColor = 'lightSkyBlue'
+    drawRuler = makePilImage(app.rulerWidth, app.rulerHeight, rulerBgColor)
+    makeRulerLines(drawRuler)
+    app.cmuRuler = CMUImage(drawRuler)
     pass
 
 def redrawAll(app):
@@ -329,6 +353,12 @@ def redrawAll(app):
 
     # Draw cursor
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
+
+    # Draw Ruler
+    if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
+        drawImage(app.cmuRuler, app.rulerCx, app.rulerCy, width=app.rulerWidth, height=app.rulerHeight, 
+                opacity=app.ruler.opacity, rotateAngle=app.ruler.angle, align='center')
+        drawLabel(f'{app.ruler.angle}°', app.rulerCx, app.rulerCy, fill='black', size=15)
     
     if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
         ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)) or 
@@ -384,6 +414,10 @@ def onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool = currWritingTool
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
+
+    if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
+        app.ruler = Ruler(app)
+        pass
     
     if (app.autoCx != None) and (distance(app.autoCx, app.autoCy, mouseX, mouseY) > app.autoR):
         app.autoCx, app.autoCy, app.autoR = None, None, None
@@ -556,6 +590,13 @@ def onKeyHold(app, keys):
                         lassoItem.points[i] += xShift
                     for i in range(1, len(lassoItem.points), 2):
                         lassoItem.points[i] += yShift
+
+    # Add a rotate mode and a move ruler mode; also implement ruler logic
+    elif (app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode):
+        if ('right' in keys) or ('d' in keys):
+            app.ruler.angle += 1
+        elif ('left' in keys) or ('a' in keys):
+            app.ruler.angle -= 1
     pass
 
 def onKeyPress(app, key):
