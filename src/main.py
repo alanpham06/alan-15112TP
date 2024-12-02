@@ -62,7 +62,7 @@ class RegPolygon:
 # Create classes for each writing utensil
 class Pencil:
     def __init__(self, app):
-         # Eventually used to check if mode is active or not
+        # Eventually used to check if mode is active or not
         self.mode = False
     
     def __eq__(self, other):
@@ -232,8 +232,11 @@ def makePilImage(imageWidth, imageHeight, bgColor):
     return Image.new('RGBA', (imageWidth, imageHeight), bgColor)
 
 # ---------------------------------------------------------------------------
-# ------- Heavily referenced ChatGPT to undertand L mode (grayscale), -------
-# ------- ImageOps, .putalpha, and .paste                             -------
+# --Heavily referenced/copied code from ChatGPT to undertand               -- 
+# --L mode (grayscale), ImageOps, .putalpha, and .paste                    --                                               --
+# --ChatGPT Prompt: "How to make a mask over images in CMU Graphics to make--
+# --pictures have rounded corners?"                                        --
+# --Link: https://chatgpt.com/                                             --
 # ---------------------------------------------------------------------------                          
 def addRoundedCorners(image, radius):
     # Create a mask for the rounded corners
@@ -244,7 +247,6 @@ def addRoundedCorners(image, radius):
     # Apply the rounded corners mask to the image
     rounded_image = ImageOps.fit(image, image.size)
     rounded_image.putalpha(mask)
-    
     return rounded_image
 
 def addRoundedCornersWithBG(image, radius, bgColor):
@@ -254,6 +256,9 @@ def addRoundedCornersWithBG(image, radius, bgColor):
     return bg
 # --------------------------------------------------------------------------- 
 # --------------------------------------------------------------------------- 
+
+# Referenced "demo-pil-image-draw" from CMU 112 Website
+# Link: https://www.cs.cmu.edu/~112/notes/tp-related-demos/tp-related-demos.html
 
 def makeCursorLines(pilImage):
     draw = ImageDraw.Draw(pilImage)
