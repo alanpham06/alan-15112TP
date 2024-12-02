@@ -11,6 +11,7 @@ class Line:
         self.y1 = y1
         self.color = 'black'
         self.lineWidth = 3
+        self.selected = False
     
     def __repr__(self):
         return f'Line from ({self.x0}, {self.y0}) to ({self.x1}, {self.y1})'
@@ -24,6 +25,8 @@ class Circle:
         self.border = 'black'
         self.borderWidth = 5
         self.opacity = 70
+        self.dashes = False
+        self.selected = False
     
     def __repr__(self):
         return f'Circle center:({self.cx},{self.cy}) radius:{self.r}'
@@ -35,6 +38,7 @@ class Polygon:
         self.border = 'black'
         self.borderWidth = 5
         self.opacity = 70
+        self.selected = False
     
     def __repr__(self):
         return f'Polygon with coordinates: {self.points}'
@@ -290,21 +294,21 @@ def onAppStart(app):
     app.writingToolsIcons = allWritingToolIcons(app)
 
     # Shape Autocorrect Trackers
-    app.startX = None
-    app.startY = None
+    app.startAutoX = None
+    app.startAutoY = None
     app.traceLines = []
     app.focalPoints = []
     app.focalPointRadius = 5
-    pass
 
-def getWritingUtensilSelection(app, mouseX, mouseY):
-    for i in range(len(app.iconUpperLeftCorners)):
-        left, top = app.iconUpperLeftCorners[i]
-        right = left + app.iconWidth
-        bottom = top + app.iconHeight
-        if (mouseX > left) and (mouseX < right) and (mouseY < bottom) and (mouseY > top):
-            return i
-    return None
+    # Lasso Mode Trackers
+    app.startLassoX = None
+    app.startLassoY = None
+    app.autoCx, app.autoCy, app.autoR = None, None, None
+    app.referX, app.referY = None, None
+    app.selectLines = []
+    app.startPoint = []
+    app.autoRadius = 10
+    pass
 
 def redrawAll(app):
     # Draw tool bar + design
@@ -329,22 +333,27 @@ def redrawAll(app):
         for line in app.allLines:
             x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
             drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
-    
-    if (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
-        for line in app.traceLines:
-            x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
-            drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
-        
+
+    elif (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
+        for autoLine in app.traceLines:
+            x0, y0, x1, y1 = autoLine.x0, autoLine.y0, autoLine.x1, autoLine.y1
+            drawLine(x0, y0, x1, y1, fill=autoLine.color, lineWidth=autoLine.lineWidth)
+
         for point in app.focalPoints:
             cx, cy = point
             drawCircle(cx, cy, app.focalPointRadius, fill='green')
+
+    elif (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode):
+        for lassoLine in app.selectLines:
+            x0, y0, x1, y1 = lassoLine.x0, lassoLine.y0, lassoLine.x1, lassoLine.y1
+            drawLine(x0, y0, x1, y1, fill=lassoLine.color, lineWidth=lassoLine.lineWidth)
     
     # Maintains all of the things already drawn on paper
     for item in app.allObjects:
         if isinstance(item, Circle):
             cx, cy, r = item.cx, item.cy, item.r
             drawCircle(cx, cy, r, fill=item.fill, border=item.border, 
-                       borderWidth=item.borderWidth, opacity=item.opacity)
+                       borderWidth=item.borderWidth, opacity=item.opacity, dashes=item.dashes)
         elif isinstance(item, Line):
             x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
             drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth)
@@ -355,6 +364,7 @@ def redrawAll(app):
     pass
 
 def onMousePress(app, mouseX, mouseY):
+    # Ensures only 1 writing tool is selected at a time
     if (getWritingUtensilSelection(app, mouseX, mouseY) != None) and (app.selectedWritingTool == None):
         selectedIndx = getWritingUtensilSelection(app, mouseX, mouseY)
         app.selectedWritingTool = app.writingTools[selectedIndx]
@@ -370,6 +380,27 @@ def onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool = currWritingTool
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
+    
+    if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
+        if distance(app.autoCx, app.autoCy, mouseX, mouseY) <= app.autoR:
+            app.referX, app.referY = mouseX, mouseY
+            print(app.referX, app.referY)
+        
+        if ((abs(mouseX - app.referX) > app.absXDiff) or (abs(mouseY - app.referY) > app.absYDiff)):
+            xShift = mouseX - app.referX
+            yShift = mouseY - app.referY
+            for lassoItem in app.allObjects:
+                if lassoItem.selected:
+                    if isinstance(lassoItem, Line):
+                        lassoItem.x0 += xShift
+                        lassoItem.x1 += xShift
+                        lassoItem.y0 += yShift
+                        lassoItem.y1 += yShift
+                    elif isinstance(lassoItem, Circle):
+                        lassoItem.cx += xShift
+                        lassoItem.cy += yShift
+                    
+  
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
@@ -377,17 +408,26 @@ def onMouseDrag(app, mouseX, mouseY):
 
     # Drawing continuous lines logic
     if (((abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff)) and 
-        ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) or (app.x1 > app.toolBarX+app.toolBarWidth))):
+        ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) 
+        or (app.x1 > app.toolBarX+app.toolBarWidth))):
         if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
             tempLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             app.allLines.append(tempLine)
         elif (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
             if app.traceLines == []:
-                app.startX = app.cursorX
-                app.startY = app.cursorY
+                app.startAutoX = app.cursorX
+                app.startAutoY = app.cursorY
             tracerLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             tracerLine.color = 'lightSlateGray'
             app.traceLines.append(tracerLine)
+        elif (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode):
+            if app.selectLines == []:
+                app.startLassoX = app.cursorX
+                app.startLassoY = app.cursorY
+                app.startPoint.append((app.startLassoX, app.startLassoY))
+            selectLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            selectLine.color = 'paleTurquoise'
+            app.selectLines.append(selectLine)
 
     app.cursorX, app.cursorY = mouseX, mouseY
     app.x1, app.y1 = None, None
@@ -420,11 +460,11 @@ def onMouseRelease(app, mouseX, mouseY):
     elif ((app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode)
          and (app.traceLines != [])):
         app.focalPoints.append((mouseX, mouseY))
-        if distance(app.startX, app.startY, mouseX, mouseY) <= app.focalPointRadius:
+        if distance(app.startAutoX, app.startAutoY, mouseX, mouseY) <= app.focalPointRadius:
             numOfFocalPoints = len(app.focalPoints)
             unpackedPoints = unpackTupleList(app.focalPoints)
             if numOfFocalPoints == 1:
-                cx, cy, radius = getCircleFeatures(app)
+                cx, cy, radius = getCircleFeatures(app.focalPoints, app.traceLines)
                 newCircle = Circle(cx, cy, radius)
                 app.allObjects.append(newCircle)
             elif numOfFocalPoints == 2:
@@ -435,6 +475,31 @@ def onMouseRelease(app, mouseX, mouseY):
                 newPolygon = Polygon(unpackedPoints)
                 app.allObjects.append(newPolygon)
             resetShapeAutocorrectVars(app)
+    elif ((app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode)
+         and (app.selectLines != [])):
+         if distance(app.startLassoX, app.startLassoY, mouseX, mouseY) <= app.autoRadius:
+            app.autoCx, app.autoCy, app.autoR = getCircleFeatures(app.startPoint, app.selectLines)
+            newSelectCir = Circle(app.autoCx, app.autoCy, app.autoR)
+            newSelectCir.opacity = 40
+            newSelectCir.dashes = True
+            app.allObjects.append(newSelectCir)
+            # Marks all of the items on screen that was selected
+            for item in app.allObjects:
+                if isinstance(item, Line):
+                    x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
+                    if ((distance(x0, y0, app.autoCx, app.autoCy) <= app.autoR) and 
+                        (distance(x1, y1, app.autoCx, app.autoCy) <= app.autoR)):
+                        item.selected = True
+                elif isinstance(item, Circle) and (item.dashes != True):
+                    cirCx, cirCy = item.cx, item.cy
+                    if distance(cirCx, cirCy, app.autoCx, app.autoCy) < app.autoR:
+                        item.selected = True
+                elif isinstance(item, Polygon):
+                    polyCx, polyCy = findPolygonCenter(item.points)
+                    if distance(polyCx, polyCy, app.autoCx, app.autoCy) < app.autoR:
+                        item.selected = True
+            resetLassoVars(app)
+
 
     app.curorsX, app.cursorY = mouseX, mouseY
     pass
@@ -443,14 +508,32 @@ def onKeyPress(app, key):
     if ((key == 'r') and (app.selectedWritingTool == ShapeAutocorrect(app)) and 
         (app.selectedWritingTool.mode) and (app.traceLines != [])):
         resetShapeAutocorrectVars(app)
+    elif ((key == 'r') and (app.selectedWritingTool == Lasso(app)) and 
+        (app.selectedWritingTool.mode) and (app.selectLines != [])):
+        resetLassoVars(app)
     pass
+
+# Helper functions used throughout the program
+def getWritingUtensilSelection(app, mouseX, mouseY):
+    for i in range(len(app.iconUpperLeftCorners)):
+        left, top = app.iconUpperLeftCorners[i]
+        right = left + app.iconWidth
+        bottom = top + app.iconHeight
+        if (mouseX > left) and (mouseX < right) and (mouseY < bottom) and (mouseY > top):
+            return i
+    return None
+
+def resetLassoVars(app):
+    app.startPoint = []
+    app.selectLines = []
+    app.startLassoX, app.startLassoY = None, None
+    app.autoCx, app.autoCy, app.autoR = None, None, None
 
 def resetShapeAutocorrectVars(app):
     app.focalPoints = []
     app.traceLines = []
-    app.startX, app.startY = None, None
+    app.startAutoX, app.startAutoY = None, None
 
-# Helper functions used throughout the program
 def findPolygonCenter(points):
     totalX, numOfX = 0, 0
     totalY, numOfY = 0, 0
@@ -473,11 +556,11 @@ def findPolygonRadius(cx, cy, points):
             minDist = currDist
     return minDist
 
-def getCircleFeatures(app):
+def getCircleFeatures(L, M):
     farDist = None
     farPtX, farPtY = None, None
-    focalX, focalY = app.focalPoints[0]
-    for line in app.traceLines:
+    focalX, focalY = L[0]
+    for line in M:
         currX, currY = line.x1, line.y1
         currDist = distance(currX, currY, focalX, focalY)
         if (farDist == None) or (currDist > farDist):
