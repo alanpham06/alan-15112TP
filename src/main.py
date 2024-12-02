@@ -336,6 +336,11 @@ def onAppStart(app):
     drawRuler = makePilImage(app.rulerWidth, app.rulerHeight, rulerBgColor)
     makeRulerLines(drawRuler)
     app.cmuRuler = CMUImage(drawRuler)
+
+    # Preloaded Shapes Tool Trackers
+    app.regPolyCx, app.regPolyCy = None, None
+    app.regPolyR = None
+    app.regPolyPoints = None
     pass
 
 def redrawAll(app):
@@ -420,6 +425,15 @@ def onMousePress(app, mouseX, mouseY):
     if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
         app.ruler = Ruler(app)
         pass
+
+    if ((app.selectedWritingTool == PreloadedShapesTool(app)) and (app.selectedWritingTool.mode)):
+        response = app.getTextInput('''What is the radius and number of points for this regular polygon?
+                                    \nPlease response in the following format with numerical values: 
+                                    (radius),(number of points)''')
+        app.regPolyR, app.regPolyPoints = getRegPolyFeatures(response)
+        if ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) 
+            or (app.x1 > app.toolBarX+app.toolBarWidth)):
+            app.regPolyCx, app.regPolyCy = mouseX, mouseY
     
     if (app.autoCx != None) and (distance(app.autoCx, app.autoCy, mouseX, mouseY) > app.autoR):
         app.autoCx, app.autoCy, app.autoR = None, None, None
@@ -645,6 +659,15 @@ def onKeyPress(app, key):
     pass
 
 # Helper functions used throughout the program
+def getRegPolyFeatures(s):
+    if ',' in s:
+        commaIndx = s.find(',')
+        regPolyR = s[:commaIndx]
+        regPolyPts = s[commaIndx+1:]
+        if regPolyR.isdigit() and regPolyPts.isdigit():
+            return regPolyR, regPolyPts
+    return None, None
+
 def getWritingUtensilSelection(app, mouseX, mouseY):
     for i in range(len(app.iconUpperLeftCorners)):
         left, top = app.iconUpperLeftCorners[i]
