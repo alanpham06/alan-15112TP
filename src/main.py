@@ -11,6 +11,7 @@ class Line:
         self.y1 = y1
         self.color = 'black'
         self.lineWidth = 3
+        self.opacity = 100
         self.selected = False
     
     def __repr__(self):
@@ -27,6 +28,7 @@ class Circle:
         self.opacity = 70
         self.dashes = False
         self.selected = False
+
     
     def __repr__(self):
         return f'Circle center:({self.cx},{self.cy}) radius:{self.r}'
@@ -328,11 +330,13 @@ def redrawAll(app):
     # Draw cursor
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
     
-    if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
+    if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
+        ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)) or 
+        ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode))):
         # Draw all of the lines
         for line in app.allLines:
             x0, y0, x1, y1 = line.x0, line.y0, line.x1, line.y1
-            drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth)
+            drawLine(x0, y0, x1, y1, fill=line.color, lineWidth=line.lineWidth, opacity=line.opacity)
 
     elif (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
         for autoLine in app.traceLines:
@@ -356,7 +360,7 @@ def redrawAll(app):
                        borderWidth=item.borderWidth, opacity=item.opacity, dashes=item.dashes)
         elif isinstance(item, Line):
             x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
-            drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth)
+            drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth, opacity=item.opacity)
         elif isinstance(item, Polygon):
             allPoints = item.points
             drawPolygon(*allPoints, fill=item.fill, border=item.border, 
@@ -381,16 +385,15 @@ def onMousePress(app, mouseX, mouseY):
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
     
-    if ((app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None)):
-        if distance(app.autoCx, app.autoCy, mouseX, mouseY) > app.autoR:
-            app.autoCx, app.autoCy, app.autoR = None, None, None
-            for item in app.allObjects:
-                if isinstance(item, Circle) and item.dashes:
-                    item.selected = not item.selected
-                    app.allObjects.remove(item)
-                elif item.selected:
-                    item.selected = not item.selected
-            resetLassoVars(app)
+    if (app.autoCx != None) and (distance(app.autoCx, app.autoCy, mouseX, mouseY) > app.autoR):
+        app.autoCx, app.autoCy, app.autoR = None, None, None
+        for item in app.allObjects:
+            if isinstance(item, Circle) and item.dashes:
+                item.selected = not item.selected
+                app.allObjects.remove(item)
+            elif item.selected:
+                item.selected = not item.selected
+        resetLassoVars(app)
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
@@ -400,9 +403,22 @@ def onMouseDrag(app, mouseX, mouseY):
     if (((abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff)) and 
         ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) 
         or (app.x1 > app.toolBarX+app.toolBarWidth))):
-        if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
-            tempLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
-            app.allLines.append(tempLine)
+        if (app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode):
+            pencilLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            # Referenced palettemaker.com to find rgb value of graphite for pencil
+            # https://palettemaker.com/colors/graphite 
+            graphite = rgb(65, 66, 76)
+            pencilLine.color = graphite
+            app.allLines.append(pencilLine)
+        elif (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
+            penLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            app.allLines.append(penLine)
+        elif (app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode):
+            highlighterLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            highlighterLine.color = 'yellow'
+            highlighterLine.lineWidth = 15
+            highlighterLine.opacity = 65
+            app.allLines.append(highlighterLine)
         elif (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
             if app.traceLines == []:
                 app.startAutoX = app.cursorX
@@ -429,8 +445,8 @@ def onMouseMove(app, mouseX, mouseY):
         for item in app.allObjects:
             if isinstance(item, Line):
                 x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
-                if ((distance(x0, y0, mouseX, mouseY) < app.cursorWidth//2) or 
-                    (distance(x1, y1, mouseX, mouseY) < app.cursorWidth//2)):
+                if ((distance(x0, y0, mouseX, mouseY) < app.cursorWidth) or 
+                    (distance(x1, y1, mouseX, mouseY) < app.cursorWidth)):
                     app.allObjects.remove(item)
             elif isinstance(item, Circle):
                 cx, cy, r = item.cx, item.cy, item.r
@@ -444,7 +460,9 @@ def onMouseMove(app, mouseX, mouseY):
     pass
     
 def onMouseRelease(app, mouseX, mouseY):
-    if (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
+    if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
+        ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)) or 
+        ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode))):
         app.allObjects.extend(app.allLines)
         app.allLines = []
     elif ((app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode)
@@ -467,7 +485,7 @@ def onMouseRelease(app, mouseX, mouseY):
             resetShapeAutocorrectVars(app)
     elif ((app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode)
          and (app.selectLines != [])):
-         if distance(app.startLassoX, app.startLassoY, mouseX, mouseY) <= app.autoRadius:
+        if distance(app.startLassoX, app.startLassoY, mouseX, mouseY) <= app.autoRadius:
             app.autoCx, app.autoCy, app.autoR = getCircleFeatures(app.startPoint, app.selectLines)
             newSelectCir = Circle(app.autoCx, app.autoCy, app.autoR)
             newSelectCir.opacity = 40
@@ -490,7 +508,8 @@ def onMouseRelease(app, mouseX, mouseY):
                     if distance(polyCx, polyCy, app.autoCx, app.autoCy) < app.autoR:
                         item.selected = True
             resetLassoVars(app)
-
+        else:
+            resetLassoVars(app)
 
     app.curorsX, app.cursorY = mouseX, mouseY
     pass
