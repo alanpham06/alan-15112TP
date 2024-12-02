@@ -192,6 +192,8 @@ class PageMode:
         return hash(str(self))
     
 # Load writing tool icon images into dictionary
+# Visit an-image-citation.md file in the src folder to see the citation for these writing tool icons
+# Link: https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/an-image-citation.md 
 def allWritingToolIcons(app):
     pencilUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/pencil-icon.jpg?raw=true'
     penUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/pen-icon-1.jpg?raw=true'
@@ -220,7 +222,6 @@ def allWritingToolIcons(app):
         PILImgAdjusted = addRoundedCornersWithBG(PILImgResize, 20, (0, 0, 0, 0))
         cmuImgFinal = CMUImage(PILImgAdjusted)
         allWritingToolIcons[currTool] = cmuImgFinal
-    
     return allWritingToolIcons
 
 def loadPilImage(url):
@@ -257,7 +258,7 @@ def addRoundedCornersWithBG(image, radius, bgColor):
 # --------------------------------------------------------------------------- 
 # --------------------------------------------------------------------------- 
 
-# Referenced "demo-pil-image-draw" from CMU 112 Website
+# (1) Referenced "demo-pil-image-draw" from CMU 112 Website
 # Link: https://www.cs.cmu.edu/~112/notes/tp-related-demos/tp-related-demos.html
 
 def makeCursorLines(pilImage):
@@ -292,11 +293,11 @@ def onAppStart(app):
     app.cursNewX, app.cursNewY = None, None
     app.cursorWidth = 15
     app.cursorHeight = 15
-    # Initialize the cursor as PIL Image
+    # (1) Initialize the cursor as PIL Image
     cursorBgColor = (0, 0, 0, 0)
     drawCursor = makePilImage(app.cursorWidth, app.cursorHeight, cursorBgColor)
     makeCursorLines(drawCursor)
-    # Convert it into a CMU image
+    # (1) Convert it into a CMU image
     app.cmuCursor = CMUImage(drawCursor)
 
     # List of all the lines drawn
@@ -350,7 +351,7 @@ def onAppStart(app):
     app.rulerCy = app.height//2
     app.rulerWidth = rounded(((app.width**2) + (app.height**2))**0.5)
     app.rulerHeight = 80
-    # Initialize the ruler as PIL Image
+    # (1) Initialize the ruler as PIL Image
     rulerBgColor = 'lightSkyBlue'
     drawRuler = makePilImage(app.rulerWidth, app.rulerHeight, rulerBgColor)
     makeRulerLines(drawRuler)
@@ -362,6 +363,8 @@ def onAppStart(app):
     app.regPolyPoints = None
     pass
 
+# Referenced CMU Graphics Documentation to understand certain functions like Drawing Shapes
+# Link: https://academy.cs.cmu.edu/docs 
 def redrawAll(app):
     # Draw tool bar + design
     drawRect(app.toolBarX, app.toolBarY-5, app.toolBarWidth+5, app.toolBarHeight+5, fill=app.toolBarBGColor)
@@ -447,7 +450,6 @@ def onMousePress(app, mouseX, mouseY):
 
     if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
         app.ruler = Ruler(app)
-        pass
 
     if ((app.selectedWritingTool == PreloadedShapesTool(app)) and (app.selectedWritingTool.mode)):
         if ((app.regPolyCx != None) and (app.regPolyCy != None) and 
@@ -690,7 +692,6 @@ def onKeyPress(app, key):
     elif ((key == 'r') and (app.selectedWritingTool == Lasso(app)) and 
         (app.selectedWritingTool.mode) and (app.selectLines != [])):
         resetLassoVars(app)
-
     pass
 
 # Helper functions used throughout the program

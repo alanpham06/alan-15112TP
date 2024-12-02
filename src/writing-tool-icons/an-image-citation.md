@@ -2,6 +2,8 @@
 I utilized Meta AI in order to generate all of the writing tool icons. The images will be used in the tool bar so that users know which button
 they are pressing. 
 
+**Meta AI** - [Meta AI Website](https://www.meta.ai/)
+
 | Writing Tool | Meta AI Prompt For Image Generation |
 | ----------- | ----------- |
 | Pencil | "Draw a pencil icon for a note taking app" |
