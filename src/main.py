@@ -380,27 +380,6 @@ def onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool = currWritingTool
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
-    
-    if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
-        if distance(app.autoCx, app.autoCy, mouseX, mouseY) <= app.autoR:
-            app.referX, app.referY = mouseX, mouseY
-            print(app.referX, app.referY)
-        
-        if ((abs(mouseX - app.referX) > app.absXDiff) or (abs(mouseY - app.referY) > app.absYDiff)):
-            xShift = mouseX - app.referX
-            yShift = mouseY - app.referY
-            for lassoItem in app.allObjects:
-                if lassoItem.selected:
-                    if isinstance(lassoItem, Line):
-                        lassoItem.x0 += xShift
-                        lassoItem.x1 += xShift
-                        lassoItem.y0 += yShift
-                        lassoItem.y1 += yShift
-                    elif isinstance(lassoItem, Circle):
-                        lassoItem.cx += xShift
-                        lassoItem.cy += yShift
-                    
-  
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
@@ -482,6 +461,7 @@ def onMouseRelease(app, mouseX, mouseY):
             newSelectCir = Circle(app.autoCx, app.autoCy, app.autoR)
             newSelectCir.opacity = 40
             newSelectCir.dashes = True
+            newSelectCir.selected = True
             app.allObjects.append(newSelectCir)
             # Marks all of the items on screen that was selected
             for item in app.allObjects:
@@ -504,6 +484,9 @@ def onMouseRelease(app, mouseX, mouseY):
     app.curorsX, app.cursorY = mouseX, mouseY
     pass
 
+def onKeyHold(app, key):
+    pass
+
 def onKeyPress(app, key):
     if ((key == 'r') and (app.selectedWritingTool == ShapeAutocorrect(app)) and 
         (app.selectedWritingTool.mode) and (app.traceLines != [])):
@@ -511,6 +494,21 @@ def onKeyPress(app, key):
     elif ((key == 'r') and (app.selectedWritingTool == Lasso(app)) and 
         (app.selectedWritingTool.mode) and (app.selectLines != [])):
         resetLassoVars(app)
+    
+    if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
+        if key == 'right':
+            xShift = +1
+            yShift = 0
+            for lassoItem in app.allObjects:
+                if lassoItem.selected:
+                    if isinstance(lassoItem, Line):
+                        lassoItem.x0 += xShift
+                        lassoItem.x1 += xShift
+                        lassoItem.y0 += yShift
+                        lassoItem.y1 += yShift
+                    elif isinstance(lassoItem, Circle):
+                        lassoItem.cx += xShift
+                        lassoItem.cy += yShift
     pass
 
 # Helper functions used throughout the program
@@ -527,7 +525,6 @@ def resetLassoVars(app):
     app.startPoint = []
     app.selectLines = []
     app.startLassoX, app.startLassoY = None, None
-    app.autoCx, app.autoCy, app.autoR = None, None, None
 
 def resetShapeAutocorrectVars(app):
     app.focalPoints = []
