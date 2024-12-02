@@ -380,6 +380,17 @@ def onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool = currWritingTool
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
+    
+    if ((app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None)):
+        if distance(app.autoCx, app.autoCy, mouseX, mouseY) > app.autoR:
+            app.autoCx, app.autoCy, app.autoR = None, None, None
+            for item in app.allObjects:
+                if isinstance(item, Circle) and item.dashes:
+                    item.selected = not item.selected
+                    app.allObjects.remove(item)
+                elif item.selected:
+                    item.selected = not item.selected
+            resetLassoVars(app)
     pass
 
 def onMouseDrag(app, mouseX, mouseY):
@@ -484,7 +495,48 @@ def onMouseRelease(app, mouseX, mouseY):
     app.curorsX, app.cursorY = mouseX, mouseY
     pass
 
-def onKeyHold(app, key):
+def onKeyHold(app, keys):
+    if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
+        if (('right' in keys) and ('up' in keys)) or (('d' in keys) and ('w' in keys)):
+            xShift = +3
+            yShift = -3
+        elif (('right' in keys) and ('down' in keys)) or (('d' in keys) and ('s' in keys)):
+            xShift = +3
+            yShift = +3
+        elif (('left' in keys) and ('up' in keys)) or (('a' in keys) and ('w' in keys)):
+            xShift = -3
+            yShift = -3
+        elif (('left' in keys) and ('down' in keys)) or (('a' in keys) and ('s' in keys)):
+            xShift = -3
+            yShift = +3
+        elif ('right' in keys) or ('d' in keys):
+            xShift = +3
+            yShift = 0
+        elif ('left' in keys) or ('a' in keys):
+            xShift = -3
+            yShift = 0
+        elif ('up' in keys) or ('w' in keys):
+            xShift = 0
+            yShift = -3
+        elif ('down' in keys) or ('s' in keys):
+            xShift = 0
+            yShift = +3
+
+        for lassoItem in app.allObjects:
+            if lassoItem.selected:
+                if isinstance(lassoItem, Line):
+                    lassoItem.x0 += xShift
+                    lassoItem.x1 += xShift
+                    lassoItem.y0 += yShift
+                    lassoItem.y1 += yShift
+                elif isinstance(lassoItem, Circle):
+                    lassoItem.cx += xShift
+                    lassoItem.cy += yShift
+                elif isinstance(lassoItem, Polygon):
+                    for i in range(0, len(lassoItem.points), 2):
+                        lassoItem.points[i] += xShift
+                    for i in range(1, len(lassoItem.points), 2):
+                        lassoItem.points[i] += yShift
     pass
 
 def onKeyPress(app, key):
@@ -494,21 +546,7 @@ def onKeyPress(app, key):
     elif ((key == 'r') and (app.selectedWritingTool == Lasso(app)) and 
         (app.selectedWritingTool.mode) and (app.selectLines != [])):
         resetLassoVars(app)
-    
-    if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
-        if key == 'right':
-            xShift = +1
-            yShift = 0
-            for lassoItem in app.allObjects:
-                if lassoItem.selected:
-                    if isinstance(lassoItem, Line):
-                        lassoItem.x0 += xShift
-                        lassoItem.x1 += xShift
-                        lassoItem.y0 += yShift
-                        lassoItem.y1 += yShift
-                    elif isinstance(lassoItem, Circle):
-                        lassoItem.cx += xShift
-                        lassoItem.cy += yShift
+
     pass
 
 # Helper functions used throughout the program
