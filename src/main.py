@@ -325,6 +325,8 @@ def onAppStart(app):
 
     # Ruler Properties
     app.ruler = None
+    app.rulerMoveMode = True
+    app.rulerRotateMode = False
     app.rulerCx = app.width//2
     app.rulerCy = app.height//2
     app.rulerWidth = rounded(((app.width**2) + (app.height**2))**0.5)
@@ -358,7 +360,7 @@ def redrawAll(app):
     if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
         drawImage(app.cmuRuler, app.rulerCx, app.rulerCy, width=app.rulerWidth, height=app.rulerHeight, 
                 opacity=app.ruler.opacity, rotateAngle=app.ruler.angle, align='center')
-        drawLabel(f'{app.ruler.angle}°', app.rulerCx, app.rulerCy, fill='black', size=15)
+        drawLabel(f'{(app.ruler.angle * -1)}°', app.rulerCx, app.rulerCy, fill='black', size=15)
     
     if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
         ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)) or 
@@ -593,10 +595,43 @@ def onKeyHold(app, keys):
 
     # Add a rotate mode and a move ruler mode; also implement ruler logic
     elif (app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode):
-        if ('right' in keys) or ('d' in keys):
-            app.ruler.angle += 1
-        elif ('left' in keys) or ('a' in keys):
-            app.ruler.angle -= 1
+        if ('r' in keys):
+            app.rulerRotateMode = True
+            app.rulerMoveMode = False
+        elif ('m' in keys):
+            app.rulerRotateMode = False
+            app.rulerMoveMode = True
+
+        if (app.rulerRotateMode) and (not app.rulerMoveMode):
+            if ('right' in keys) or ('d' in keys):
+                app.ruler.angle += 1
+            elif ('left' in keys) or ('a' in keys):
+                app.ruler.angle -= 1
+        elif (not app.rulerRotateMode) and (app.rulerMoveMode):
+            if (('right' in keys) and ('up' in keys)) or (('d' in keys) and ('w' in keys)):
+                app.rulerCx += 3
+                app.rulerCy -= 3
+            elif (('right' in keys) and ('down' in keys)) or (('d' in keys) and ('s' in keys)):
+                app.rulerCx += 3
+                app.rulerCy += 3
+            elif (('left' in keys) and ('up' in keys)) or (('a' in keys) and ('w' in keys)):
+                app.rulerCx -= 3
+                app.rulerCy -= 3
+            elif (('left' in keys) and ('down' in keys)) or (('a' in keys) and ('s' in keys)):
+                app.rulerCx -= 3
+                app.rulerCy += 3
+            elif ('right' in keys) or ('d' in keys):
+                app.rulerCx += 3
+                app.rulerCy += 0
+            elif ('left' in keys) or ('a' in keys):
+                app.rulerCx -= 3
+                app.rulerCy += 0
+            elif ('up' in keys) or ('w' in keys):
+                app.rulerCx += 0
+                app.rulerCy -= 3
+            elif ('down' in keys) or ('s' in keys):
+                app.rulerCx += 0
+                app.rulerCy += 3
     pass
 
 def onKeyPress(app, key):
