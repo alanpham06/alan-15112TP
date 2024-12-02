@@ -45,6 +45,20 @@ class Polygon:
     def __repr__(self):
         return f'Polygon with coordinates: {self.points}'
     
+class RegPolygon:
+    def __init__(self, cx, cy, r, points):
+        self.cx = cx
+        self.cy = cy
+        self.r = r
+        self.points = points
+        self.fill = 'white'
+        self.border = 'black'
+        self.borderWidth = 3
+        self.opacity = 70
+    
+    def __repr__(self):
+        return f'Regular Polygon center: ({self.cx},{self.cy}), radius:{self.r}, points:{self.points}'
+    
 # Create classes for each writing utensil
 class Pencil:
     def __init__(self, app):
@@ -402,6 +416,10 @@ def redrawAll(app):
             allPoints = item.points
             drawPolygon(*allPoints, fill=item.fill, border=item.border, 
                         borderWidth=item.borderWidth, opacity=item.opacity)
+        elif isinstance(item, RegPolygon):
+            regCx, regCy, regR, regPts = item.cx, item.cy, item.r, item.points
+            drawRegularPolygon(regCx, regCy, regR, regPts, fill=item.fill, border=item.border, 
+                        borderWidth=item.borderWidth, opacity=item.opacity)
     pass
 
 def onMousePress(app, mouseX, mouseY):
@@ -427,13 +445,21 @@ def onMousePress(app, mouseX, mouseY):
         pass
 
     if ((app.selectedWritingTool == PreloadedShapesTool(app)) and (app.selectedWritingTool.mode)):
-        response = app.getTextInput('''What is the radius and number of points for this regular polygon?
+        if ((app.regPolyCx != None) and (app.regPolyCy != None) and 
+            (app.regPolyR != None) and (app.regPolyPoints != None)):
+            regPoly = RegPolygon(app.regPolyCx, app.regPolyCy, app.regPolyR, app.regPolyPoints)
+            app.allObjects.append(regPoly)
+            resetRegPolygon(app)
+        elif ((app.regPolyR != None) and (app.regPolyPoints != None) and 
+            (mouseY > app.toolBarY+app.toolBarHeight+app.regPolyR) or (mouseX < app.toolBarX) 
+            or (mouseX > app.toolBarX+app.toolBarWidth)):
+            app.regPolyCx, app.regPolyCy = mouseX, mouseY
+        else:
+            response = app.getTextInput('''What is the radius and number of points for this regular polygon?
                                     \nPlease response in the following format with numerical values: 
                                     (radius),(number of points)''')
-        app.regPolyR, app.regPolyPoints = getRegPolyFeatures(response)
-        if ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) 
-            or (app.x1 > app.toolBarX+app.toolBarWidth)):
-            app.regPolyCx, app.regPolyCy = mouseX, mouseY
+            app.regPolyR, app.regPolyPoints = getRegPolyFeatures(response)
+        
     
     if (app.autoCx != None) and (distance(app.autoCx, app.autoCy, mouseX, mouseY) > app.autoR):
         app.autoCx, app.autoCy, app.autoR = None, None, None
@@ -506,6 +532,10 @@ def onMouseMove(app, mouseX, mouseY):
                 cx, cy = findPolygonCenter(item.points)
                 polygonRadius = findPolygonRadius(cx, cy, item.points)
                 if distance(mouseX, mouseY, cx, cy) <= polygonRadius:
+                    app.allObjects.remove(item)
+            elif isinstance(item, RegPolygon):
+                regCx, regCy, regR = item.cx, item.cy, item.r
+                if (distance(regCx, regCy, mouseX, mouseY) < regR):
                     app.allObjects.remove(item)
     pass
     
@@ -659,13 +689,18 @@ def onKeyPress(app, key):
     pass
 
 # Helper functions used throughout the program
+def resetRegPolygon(app):
+    app.regPolyCx, app.regPolyCy = None, None
+    app.regPolyR = None
+    app.regPolyPoints = None
+
 def getRegPolyFeatures(s):
     if ',' in s:
         commaIndx = s.find(',')
         regPolyR = s[:commaIndx]
         regPolyPts = s[commaIndx+1:]
         if regPolyR.isdigit() and regPolyPts.isdigit():
-            return regPolyR, regPolyPts
+            return int(regPolyR), int(regPolyPts)
     return None, None
 
 def getWritingUtensilSelection(app, mouseX, mouseY):
