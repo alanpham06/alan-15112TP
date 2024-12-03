@@ -22,7 +22,7 @@ class Circle:
         self.cx = cx
         self.cy = cy
         self.r = r
-        self.fill = 'white'
+        self.fill = None
         self.border = 'black'
         self.borderWidth = 5
         self.opacity = 70
@@ -36,7 +36,7 @@ class Circle:
 class Polygon:
     def __init__(self, points):
         self.points = points
-        self.fill = 'white'
+        self.fill = None
         self.border = 'black'
         self.borderWidth = 5
         self.opacity = 70
@@ -51,7 +51,7 @@ class RegPolygon:
         self.cy = cy
         self.r = r
         self.points = points
-        self.fill = 'white'
+        self.fill = None
         self.border = 'black'
         self.borderWidth = 3
         self.opacity = 70
@@ -282,9 +282,8 @@ def onAppStart(app):
     app.background = 'floralWhite'
 
     # Line spacing logic
-    app.absXDiff = 0.25
-    app.absYDiff = 0.25
-
+    app.absXDiff = 0.1
+    app.absYDiff = 0.1
     # Shape Autocorrect Spacing Logic
     app.absXDiffAuto = 3
     app.absYDiffAuto = 3
@@ -304,9 +303,6 @@ def onAppStart(app):
     makeCursorLines(drawCursor)
     # (1) Convert it into a CMU image
     app.cmuCursor = CMUImage(drawCursor)
-
-    # Eraser Properties
-    app.eraserRadius = 15
 
     # List of all the lines drawn
     app.allLines = []
@@ -335,22 +331,27 @@ def onAppStart(app):
                          Lasso(app), PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app)])
     app.writingToolsIcons = allWritingToolIcons(app)
 
-    # Pencil/Eraser Dropdown Menu
+    # Writing Tool Properties
     app.pencilLineWidth = 3
-    app.peMenuX = app.toolBarX 
-    app.peMenuY = app.toolBarY + app.toolBarHeight
-    app.peMenuWidth = rounded(app.toolBarWidth*0.25)
-    app.peMenuHeight = rounded(app.toolBarHeight*0.75)
-    app.peMenuUpperLeftCorners = []
+    app.eraserRadius = 15
+    app.penLineWidth = 3
+    app.highlighterLineWidth = 15
+
+    # Pencil/Pen/Highlighter/Eraser Size Dropdown Menu
+    app.sizeMenuX = app.toolBarX 
+    app.sizeMenuY = app.toolBarY + app.toolBarHeight
+    app.sizeMenuWidth = rounded(app.toolBarWidth*0.25)
+    app.sizeMenuHeight = rounded(app.toolBarHeight*0.75)
+    app.sizeMenuUpperLeftCorners = []
     app.offset = 10
     app.buttonWidth = 50
-    app.buttonHeight = app.peMenuHeight - (app.offset*2)
+    app.buttonHeight = app.sizeMenuHeight - (app.offset*2)
     for i in range(3):
-        left, top = app.peMenuX+app.offset + app.buttonWidth*i, app.peMenuY+app.offset
-        app.peMenuUpperLeftCorners.append((left, top))
-    app.peMenuColor = 'gainsboro'
-    app.peButtonColors = ['aliceBlue', 'azure', 'aliceBlue']
-    app.peButtonLabels = ['-', f'{app.pencilLineWidth}', '+']
+        left, top = app.sizeMenuX+app.offset + app.buttonWidth*i, app.sizeMenuY+app.offset
+        app.sizeMenuUpperLeftCorners.append((left, top))
+    app.sizeMenuColor = 'gainsboro'
+    app.sizeButtonColors = ['aliceBlue', 'azure', 'aliceBlue']
+    app.sizeButtonLabels = ['-', f'{app.pencilLineWidth}', '+']
 
     # Shape Autocorrect Trackers
     app.startAutoX = None
@@ -406,13 +407,15 @@ def redrawAll(app):
         drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
     # Draw proper dropdown menu for each tool
     if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode) or
-        (app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
-        drawRect(app.peMenuX, app.peMenuY, app.peMenuWidth, 
-                 app.peMenuHeight, fill=app.peMenuColor)
-        for i in range(len(app.peMenuUpperLeftCorners)):
-            left, top = app.peMenuUpperLeftCorners[i]
-            drawRect(left, top, app.buttonWidth, app.buttonHeight, fill=app.peButtonColors[i], border='black')
-            drawLabel(app.peButtonLabels[i], (left+app.buttonWidth//2), 
+        (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode) or 
+        (app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode) or 
+        (app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
+        drawRect(app.sizeMenuX, app.sizeMenuY, app.sizeMenuWidth, 
+                 app.sizeMenuHeight, fill=app.sizeMenuColor)
+        for i in range(len(app.sizeMenuUpperLeftCorners)):
+            left, top = app.sizeMenuUpperLeftCorners[i]
+            drawRect(left, top, app.buttonWidth, app.buttonHeight, fill=app.sizeButtonColors[i], border='black')
+            drawLabel(app.sizeButtonLabels[i], (left+app.buttonWidth//2), 
                       top+app.buttonHeight//2, size=(30 if i%2 == 0 else 15), bold=True)
 
     # Draw cursor
@@ -485,20 +488,24 @@ def onMousePress(app, mouseX, mouseY):
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
 
-    if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
-        selection = getPeCounter(app, mouseX, mouseY)
-        if (selection != None) and (selection == '-') and (app.pencilLineWidth > 1):
-            app.pencilLineWidth -= 0.25
-        elif (selection != None) and (selection == '+'):
-            app.pencilLineWidth += 0.25
-        app.peButtonLabels[1] = f'{app.pencilLineWidth}'
-    elif ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
-        selection = getPeCounter(app, mouseX, mouseY)
-        if (selection != None) and (selection == '-') and (app.eraserRadius > 1):
-            app.eraserRadius -= 1
-        elif (selection != None) and (selection == '+'):
-            app.eraserRadius += 1
-        app.peButtonLabels[1] = f'{app.eraserRadius}'
+    if ((mouseY < app.toolBarY+app.toolBarHeight) and (mouseX > app.toolBarX) 
+        and (mouseX < app.toolBarX+app.toolBarWidth)):
+        selection = getSizeCounter(app, mouseX, mouseY)
+        if ((selection != None) and (app.selectedWritingTool == Pencil(app)) and 
+            (app.selectedWritingTool.mode)):
+            if (selection == '-') and (app.pencilLineWidth > 1):
+                app.pencilLineWidth -= 0.25
+            elif (selection == '+'):
+                app.pencilLineWidth += 0.25
+            app.sizeButtonLabels[1] = f'{app.pencilLineWidth}'
+        elif ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)):
+            pass
+        elif ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
+            if (selection == '-') and (app.eraserRadius > 1):
+                app.eraserRadius -= 1
+            elif (selection == '+'):
+                app.eraserRadius += 1
+            app.sizeButtonLabels[1] = f'{app.eraserRadius}'
 
     if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
         app.ruler = Ruler(app)
@@ -548,12 +555,13 @@ def onMouseDrag(app, mouseX, mouseY):
             app.allLines.append(pencilLine)
         elif (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
             penLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            penLine.lineWidth = app.penLineWidth
             app.allLines.append(penLine)
         elif (app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode):
             highlighterLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             highlighterLine.color = 'yellow'
-            highlighterLine.lineWidth = 15
-            highlighterLine.opacity = 65
+            highlighterLine.lineWidth = app.highlighterLineWidth
+            highlighterLine.opacity = 40
             app.allLines.append(highlighterLine)
         elif (app.selectedWritingTool == ShapeAutocorrect(app)) and (app.selectedWritingTool.mode):
             if app.traceLines == []:
@@ -758,13 +766,13 @@ def onKeyPress(app, key):
     pass
 
 # Helper functions used throughout the program
-def getPeCounter(app, mouseX, mouseY):
-    for i in range(len(app.peMenuUpperLeftCorners)):
-        left, top = app.peMenuUpperLeftCorners[i]
+def getSizeCounter(app, mouseX, mouseY):
+    for i in range(len(app.sizeMenuUpperLeftCorners)):
+        left, top = app.sizeMenuUpperLeftCorners[i]
         right = left + app.buttonWidth
         bottom = top + app.buttonHeight
         if (mouseX > left) and (mouseX < right) and (mouseY < bottom) and (mouseY > top):
-            return app.peButtonLabels[i]
+            return app.sizeButtonLabels[i]
     return None
     
 def resetRegPolygon(app):
