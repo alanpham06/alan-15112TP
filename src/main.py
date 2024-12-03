@@ -1,7 +1,7 @@
 from cmu_graphics import *
 from urllib.request import urlopen
 from PIL import Image, ImageDraw, ImageOps
-
+# Fix eraser, write instruction screens, fix movement 
 # Create classes for each kind of object that will be drawn on the board
 class Line:
     def __init__(self, x0, y0, x1, y1):
@@ -278,6 +278,7 @@ def makeRulerLines(pilImage):
             draw.line((i, 0, i, imageHeight//4), width=3, fill='black')
 
 def onAppStart(app):
+    app.keys = []
     # Line spacing logic
     app.absXDiff = 1
     app.absYDiff = 1
@@ -654,31 +655,31 @@ def onMouseRelease(app, mouseX, mouseY):
 
 def onKeyHold(app, keys):
     if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
-        if (('right' in keys) and ('up' in keys)) or (('d' in keys) and ('w' in keys)):
+        xShift, yShift = 0, 0
+        if (('right' in app.keys) and ('up' in app.keys)) or (('d' in app.keys) and ('w' in app.keys)):
             xShift = +3
             yShift = -3
-        elif (('right' in keys) and ('down' in keys)) or (('d' in keys) and ('s' in keys)):
+        elif (('right' in app.keys) and ('down' in app.keys)) or (('d' in app.keys) and ('s' in app.keys)):
             xShift = +3
             yShift = +3
-        elif (('left' in keys) and ('up' in keys)) or (('a' in keys) and ('w' in keys)):
+        elif (('left' in app.keys) and ('up' in app.keys)) or (('a' in app.keys) and ('w' in app.keys)):
             xShift = -3
             yShift = -3
-        elif (('left' in keys) and ('down' in keys)) or (('a' in keys) and ('s' in keys)):
+        elif (('left' in app.keys) and ('down' in app.keys)) or (('a' in app.keys) and ('s' in app.keys)):
             xShift = -3
             yShift = +3
-        elif ('right' in keys) or ('d' in keys):
+        elif ('right' in app.keys) or ('d' in app.keys):
             xShift = +3
             yShift = 0
-        elif ('left' in keys) or ('a' in keys):
+        elif ('left' in app.keys) or ('a' in app.keys):
             xShift = -3
             yShift = 0
-        elif ('up' in keys) or ('w' in keys):
+        elif ('up' in app.keys) or ('w' in app.keys):
             xShift = 0
             yShift = -3
-        elif ('down' in keys) or ('s' in keys):
+        elif ('down' in app.keys) or ('s' in app.keys):
             xShift = 0
             yShift = +3
-
         for lassoItem in app.allObjects:
             if lassoItem.selected:
                 if isinstance(lassoItem, Line):
@@ -697,43 +698,47 @@ def onKeyHold(app, keys):
 
     # Add a rotate mode and a move ruler mode; also implement ruler logic
     elif (app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode):
-        if ('r' in keys):
+        if ('r' in app.keys):
             app.rulerRotateMode = True
             app.rulerMoveMode = False
-        elif ('m' in keys):
+        elif ('m' in app.keys):
             app.rulerRotateMode = False
             app.rulerMoveMode = True
 
         if (app.rulerRotateMode) and (not app.rulerMoveMode):
-            if ('right' in keys) or ('d' in keys):
+            if ('right' in app.keys) or ('d' in app.keys):
                 app.ruler.angle += 1
-            elif ('left' in keys) or ('a' in keys):
+            elif ('left' in app.keys) or ('a' in app.keys):
                 app.ruler.angle -= 1
         elif (not app.rulerRotateMode) and (app.rulerMoveMode):
-            if (('right' in keys) and ('up' in keys)) or (('d' in keys) and ('w' in keys)):
+            if (('right' in app.keys) and ('up' in app.keys)) or (('d' in app.keys) and ('w' in app.keys)):
                 app.rulerCx += 3
                 app.rulerCy -= 3
-            elif (('right' in keys) and ('down' in keys)) or (('d' in keys) and ('s' in keys)):
+            elif (('right' in app.keys) and ('down' in app.keys)) or (('d' in app.keys) and ('s' in app.keys)):
                 app.rulerCx += 3
                 app.rulerCy += 3
-            elif (('left' in keys) and ('up' in keys)) or (('a' in keys) and ('w' in keys)):
+            elif (('left' in app.keys) and ('up' in app.keys)) or (('a' in app.keys) and ('w' in app.keys)):
                 app.rulerCx -= 3
                 app.rulerCy -= 3
-            elif (('left' in keys) and ('down' in keys)) or (('a' in keys) and ('s' in keys)):
+            elif (('left' in app.keys) and ('down' in app.keys)) or (('a' in app.keys) and ('s' in app.keys)):
                 app.rulerCx -= 3
                 app.rulerCy += 3
-            elif ('right' in keys) or ('d' in keys):
+            elif ('right' in app.keys) or ('d' in app.keys):
                 app.rulerCx += 3
                 app.rulerCy += 0
-            elif ('left' in keys) or ('a' in keys):
+            elif ('left' in app.keys) or ('a' in app.keys):
                 app.rulerCx -= 3
                 app.rulerCy += 0
-            elif ('up' in keys) or ('w' in keys):
+            elif ('up' in app.keys) or ('w' in app.keys):
                 app.rulerCx += 0
                 app.rulerCy -= 3
-            elif ('down' in keys) or ('s' in keys):
+            elif ('down' in app.keys) or ('s' in app.keys):
                 app.rulerCx += 0
                 app.rulerCy += 3
+    pass
+
+def onKeyRelease(app, key):
+    app.keys.remove(key)
     pass
 
 def onKeyPress(app, key):
@@ -743,6 +748,8 @@ def onKeyPress(app, key):
     elif ((key == 'r') and (app.selectedWritingTool == Lasso(app)) and 
         (app.selectedWritingTool.mode) and (app.selectLines != [])):
         resetLassoVars(app)
+    else:
+        app.keys.append(key)
     pass
 
 # Helper functions used throughout the program
