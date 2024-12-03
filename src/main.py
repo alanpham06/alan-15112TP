@@ -55,6 +55,7 @@ class RegPolygon:
         self.border = 'black'
         self.borderWidth = 3
         self.opacity = 70
+        self.selected = False
     
     def __repr__(self):
         return f'Regular Polygon center: ({self.cx},{self.cy}), radius:{self.r}, points:{self.points}'
@@ -327,6 +328,23 @@ def onAppStart(app):
                          Lasso(app), PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app)])
     app.writingToolsIcons = allWritingToolIcons(app)
 
+    # Pencil Dropdown Menu
+    app.pencilLineWidth = 3
+    app.pencilMenuX = app.toolBarX 
+    app.pencilMenuY = app.toolBarY + app.toolBarHeight
+    app.pencilMenuWidth = rounded(app.toolBarWidth*0.25)
+    app.pencilMenuHeight = rounded(app.toolBarHeight*0.75)
+    app.pencilMenuUpperLeftCorners = []
+    app.offset = 10
+    app.buttonWidth = 50
+    app.buttonHeight = app.pencilMenuHeight - (app.offset*2)
+    for i in range(3):
+        left, top = app.pencilMenuX+app.offset + app.buttonWidth*i, app.pencilMenuY+app.offset
+        app.pencilMenuUpperLeftCorners.append((left, top))
+    app.pencilMenuColor = 'gainsboro'
+    app.pencilButtonColors = ['aliceBlue', 'azure', 'aliceBlue']
+    app.pencilButtonLabels = ['-', f'{app.pencilLineWidth}', '+']
+    
     # Shape Autocorrect Trackers
     app.startAutoX = None
     app.startAutoY = None
@@ -379,6 +397,15 @@ def redrawAll(app):
         indx = app.writingTools.index(app.selectedWritingTool)
         leftX, topY = app.iconUpperLeftCorners[indx]
         drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
+    # Draw proper dropdown menu for each tool
+    if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
+        drawRect(app.pencilMenuX, app.pencilMenuY, app.pencilMenuWidth, 
+                 app.pencilMenuHeight, fill=app.pencilMenuColor)
+        for i in range(len(app.pencilMenuUpperLeftCorners)):
+            left, top = app.pencilMenuUpperLeftCorners[i]
+            drawRect(left, top, app.buttonWidth, app.buttonHeight, fill=app.pencilButtonColors[i], border='black')
+            drawLabel(app.pencilButtonLabels[i], (left+app.buttonWidth//2), 
+                      top+app.buttonHeight//2, size=(30 if i%2 == 0 else 15), bold=True)
 
     # Draw cursor
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
@@ -448,6 +475,15 @@ def onMousePress(app, mouseX, mouseY):
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
 
+    if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
+        selection = getPencilCounter(app, mouseX, mouseY)
+        print(selection)
+        if (selection != None) and (selection == '-') and (app.pencilLineWidth > 1):
+            app.pencilLineWidth -= 0.25
+        elif (selection != None) and (selection == '+'):
+            app.pencilLineWidth += 0.25
+        app.pencilButtonLabels[1] = f'{app.pencilLineWidth}'
+
     if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
         app.ruler = Ruler(app)
 
@@ -492,6 +528,7 @@ def onMouseDrag(app, mouseX, mouseY):
             # https://palettemaker.com/colors/graphite 
             graphite = rgb(65, 66, 76)
             pencilLine.color = graphite
+            pencilLine.lineWidth = app.pencilLineWidth
             app.allLines.append(pencilLine)
         elif (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
             penLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
@@ -594,6 +631,10 @@ def onMouseRelease(app, mouseX, mouseY):
                     polyCx, polyCy = findPolygonCenter(item.points)
                     if distance(polyCx, polyCy, app.autoCx, app.autoCy) < app.autoR:
                         item.selected = True
+                elif isinstance(item, RegPolygon):
+                    regPolyCx, regPolyCy = item.cx, item.cy
+                    if distance(regPolyCx, regPolyCy, app.autoCx, app.autoCy) < app.autoR:
+                        item.selected = True
             resetLassoVars(app)
         else:
             resetLassoVars(app)
@@ -695,6 +736,15 @@ def onKeyPress(app, key):
     pass
 
 # Helper functions used throughout the program
+def getPencilCounter(app, mouseX, mouseY):
+    for i in range(len(app.pencilMenuUpperLeftCorners)):
+        left, top = app.pencilMenuUpperLeftCorners[i]
+        right = left + app.buttonWidth
+        bottom = top + app.buttonHeight
+        if (mouseX > left) and (mouseX < right) and (mouseY < bottom) and (mouseY > top):
+            return app.pencilButtonLabels[i]
+    return None
+    
 def resetRegPolygon(app):
     app.regPolyCx, app.regPolyCy = None, None
     app.regPolyR = None
