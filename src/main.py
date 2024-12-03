@@ -301,6 +301,9 @@ def onAppStart(app):
     # (1) Convert it into a CMU image
     app.cmuCursor = CMUImage(drawCursor)
 
+    # Eraser Properties
+    app.eraserRadius = 15
+
     # List of all the lines drawn
     app.allLines = []
     app.allObjects = []
@@ -328,23 +331,23 @@ def onAppStart(app):
                          Lasso(app), PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app)])
     app.writingToolsIcons = allWritingToolIcons(app)
 
-    # Pencil Dropdown Menu
+    # Pencil/Eraser Dropdown Menu
     app.pencilLineWidth = 3
-    app.pencilMenuX = app.toolBarX 
-    app.pencilMenuY = app.toolBarY + app.toolBarHeight
-    app.pencilMenuWidth = rounded(app.toolBarWidth*0.25)
-    app.pencilMenuHeight = rounded(app.toolBarHeight*0.75)
-    app.pencilMenuUpperLeftCorners = []
+    app.peMenuX = app.toolBarX 
+    app.peMenuY = app.toolBarY + app.toolBarHeight
+    app.peMenuWidth = rounded(app.toolBarWidth*0.25)
+    app.peMenuHeight = rounded(app.toolBarHeight*0.75)
+    app.peMenuUpperLeftCorners = []
     app.offset = 10
     app.buttonWidth = 50
-    app.buttonHeight = app.pencilMenuHeight - (app.offset*2)
+    app.buttonHeight = app.peMenuHeight - (app.offset*2)
     for i in range(3):
-        left, top = app.pencilMenuX+app.offset + app.buttonWidth*i, app.pencilMenuY+app.offset
-        app.pencilMenuUpperLeftCorners.append((left, top))
-    app.pencilMenuColor = 'gainsboro'
-    app.pencilButtonColors = ['aliceBlue', 'azure', 'aliceBlue']
-    app.pencilButtonLabels = ['-', f'{app.pencilLineWidth}', '+']
-    
+        left, top = app.peMenuX+app.offset + app.buttonWidth*i, app.peMenuY+app.offset
+        app.peMenuUpperLeftCorners.append((left, top))
+    app.peMenuColor = 'gainsboro'
+    app.peButtonColors = ['aliceBlue', 'azure', 'aliceBlue']
+    app.peButtonLabels = ['-', f'{app.pencilLineWidth}', '+']
+
     # Shape Autocorrect Trackers
     app.startAutoX = None
     app.startAutoY = None
@@ -398,13 +401,14 @@ def redrawAll(app):
         leftX, topY = app.iconUpperLeftCorners[indx]
         drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
     # Draw proper dropdown menu for each tool
-    if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
-        drawRect(app.pencilMenuX, app.pencilMenuY, app.pencilMenuWidth, 
-                 app.pencilMenuHeight, fill=app.pencilMenuColor)
-        for i in range(len(app.pencilMenuUpperLeftCorners)):
-            left, top = app.pencilMenuUpperLeftCorners[i]
-            drawRect(left, top, app.buttonWidth, app.buttonHeight, fill=app.pencilButtonColors[i], border='black')
-            drawLabel(app.pencilButtonLabels[i], (left+app.buttonWidth//2), 
+    if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode) or
+        (app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
+        drawRect(app.peMenuX, app.peMenuY, app.peMenuWidth, 
+                 app.peMenuHeight, fill=app.peMenuColor)
+        for i in range(len(app.peMenuUpperLeftCorners)):
+            left, top = app.peMenuUpperLeftCorners[i]
+            drawRect(left, top, app.buttonWidth, app.buttonHeight, fill=app.peButtonColors[i], border='black')
+            drawLabel(app.peButtonLabels[i], (left+app.buttonWidth//2), 
                       top+app.buttonHeight//2, size=(30 if i%2 == 0 else 15), bold=True)
 
     # Draw cursor
@@ -476,13 +480,19 @@ def onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
 
     if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
-        selection = getPencilCounter(app, mouseX, mouseY)
-        print(selection)
+        selection = getPeCounter(app, mouseX, mouseY)
         if (selection != None) and (selection == '-') and (app.pencilLineWidth > 1):
             app.pencilLineWidth -= 0.25
         elif (selection != None) and (selection == '+'):
             app.pencilLineWidth += 0.25
-        app.pencilButtonLabels[1] = f'{app.pencilLineWidth}'
+        app.peButtonLabels[1] = f'{app.pencilLineWidth}'
+    elif ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
+        selection = getPeCounter(app, mouseX, mouseY)
+        if (selection != None) and (selection == '-') and (app.eraserRadius > 1):
+            app.eraserRadius -= 1
+        elif (selection != None) and (selection == '+'):
+            app.eraserRadius += 1
+        app.peButtonLabels[1] = f'{app.eraserRadius}'
 
     if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
         app.ruler = Ruler(app)
@@ -565,21 +575,21 @@ def onMouseMove(app, mouseX, mouseY):
         for item in app.allObjects:
             if isinstance(item, Line):
                 x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
-                if ((distance(x0, y0, mouseX, mouseY) < app.cursorWidth) or 
-                    (distance(x1, y1, mouseX, mouseY) < app.cursorWidth)):
+                if ((distance(x0, y0, mouseX, mouseY) < app.eraserRadius) or 
+                    (distance(x1, y1, mouseX, mouseY) < app.eraserRadius)):
                     app.allObjects.remove(item)
             elif isinstance(item, Circle):
                 cx, cy, r = item.cx, item.cy, item.r
-                if (distance(cx, cy, mouseX, mouseY) < r):
+                if (distance(cx, cy, mouseX, mouseY) < r+app.eraserRadius):
                     app.allObjects.remove(item)
             elif isinstance(item, Polygon):
                 cx, cy = findPolygonCenter(item.points)
                 polygonRadius = findPolygonRadius(cx, cy, item.points)
-                if distance(mouseX, mouseY, cx, cy) <= polygonRadius:
+                if distance(mouseX, mouseY, cx, cy) <= polygonRadius+app.eraserRadius:
                     app.allObjects.remove(item)
             elif isinstance(item, RegPolygon):
                 regCx, regCy, regR = item.cx, item.cy, item.r
-                if (distance(regCx, regCy, mouseX, mouseY) < regR):
+                if (distance(regCx, regCy, mouseX, mouseY) < regR+app.eraserRadius):
                     app.allObjects.remove(item)
     pass
     
@@ -736,13 +746,13 @@ def onKeyPress(app, key):
     pass
 
 # Helper functions used throughout the program
-def getPencilCounter(app, mouseX, mouseY):
-    for i in range(len(app.pencilMenuUpperLeftCorners)):
-        left, top = app.pencilMenuUpperLeftCorners[i]
+def getPeCounter(app, mouseX, mouseY):
+    for i in range(len(app.peMenuUpperLeftCorners)):
+        left, top = app.peMenuUpperLeftCorners[i]
         right = left + app.buttonWidth
         bottom = top + app.buttonHeight
         if (mouseX > left) and (mouseX < right) and (mouseY < bottom) and (mouseY > top):
-            return app.pencilButtonLabels[i]
+            return app.peButtonLabels[i]
     return None
     
 def resetRegPolygon(app):
