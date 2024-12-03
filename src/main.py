@@ -277,11 +277,14 @@ def makeRulerLines(pilImage):
         if i%20 == 0:
             draw.line((i, 0, i, imageHeight//4), width=3, fill='black')
 
-def onAppStart(app):
+def onAppStart(app): 
     app.keys = []
+    app.background = 'floralWhite'
+
     # Line spacing logic
-    app.absXDiff = 1
-    app.absYDiff = 1
+    app.absXDiff = 0.25
+    app.absYDiff = 0.25
+
     # Shape Autocorrect Spacing Logic
     app.absXDiffAuto = 3
     app.absYDiffAuto = 3
@@ -413,6 +416,8 @@ def redrawAll(app):
                       top+app.buttonHeight//2, size=(30 if i%2 == 0 else 15), bold=True)
 
     # Draw cursor
+    if ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
+        drawCircle(app.cursorX, app.cursorY, app.eraserRadius, fill=None, border='dimGray', dashes=True)
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
 
     # Draw Ruler
