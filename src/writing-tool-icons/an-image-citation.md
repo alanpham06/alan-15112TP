@@ -10,8 +10,10 @@ they are pressing.
 | Pen | "Draw a pen icon for a note taking app" |
 | Highlighter | "Draw a highlighter icon for a note taking app" |
 | Eraser | "Draw an eraser icon for a note taking app" |
-| Ruler | "Draw a ruler icon for a note taking app" |
 | Lasso Mode | "Draw a lasso icon for a note taking app" |
 | Pre-Loaded Shapes Mode | "Draw a shapes icon for a note taking app" |
 | Shape Autocorrect Mode | "Draw a line almosting finishing a square icon for a note taking app" |
 | Page Mode | "Draw a page mode icon for a note taking app" |
+| Undo | "Draw an undo button icon with arrows for a note taking app"|
+| Reset | "Draw a reset button icon with arrows for a note taking app"|
+

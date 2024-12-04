@@ -118,24 +118,6 @@ class Eraser:
     def __hash__(self):
         return hash(str(self))
 
-class Ruler:
-    def __init__(self, app):
-        # Eventually used to check if mode is active or not
-        self.mode = False
-        self.color = 'lightSkyBlue'
-        self.borderWidth = 2
-        self.opacity = 60
-        self.angle = 0
-
-    def __eq__(self, other):
-        return isinstance(other, Ruler)
-    
-    def __repr__(self):
-        return f'Ruler'
-    
-    def __hash__(self):
-        return hash(str(self))
-
 class Lasso:
     def __init__(self, app):
         # Eventually used to check if mode is active or not
@@ -192,6 +174,34 @@ class PageMode:
     def __hash__(self):
         return hash(str(self))
     
+class Undo:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.mode = False
+        
+    def __eq__(self, other):
+        return isinstance(other, Undo)
+    
+    def __repr__(self):
+        return f'Undo'
+    
+    def __hash__(self):
+        return hash(str(self))
+    
+class Reset:
+    def __init__(self, app):
+        # Eventually used to check if mode is active or not
+        self.mode = False
+
+    def __eq__(self, other):
+        return isinstance(other, Reset)
+    
+    def __repr__(self):
+        return f'Reset'
+    
+    def __hash__(self):
+        return hash(str(self))
+    
 # Load writing tool icon images into dictionary
 # Visit an-image-citation.md file in the src folder to see the citation for these writing tool icons
 # Link: https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/an-image-citation.md 
@@ -200,16 +210,18 @@ def allWritingToolIcons(app):
     penUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/pen-icon-1.jpg?raw=true'
     highlighterUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/highlighter-icon-2.jpg?raw=true'
     eraserUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/eraser-icon.jpg?raw=true'
-    rulerUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/ruler-icon.jpg?raw=true'
     lassoUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/lasso-icon-2.jpg?raw=true'
     preloadedShapesToolUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/preloaded-shapes-icon.jpg?raw=true'
     shapeAutocorrectUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/shape-autocorrect-icon-3.jpg?raw=true'
     pageModeUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/page-icon-2.jpg?raw=true'
-
-    writingTools = ([Pencil(app), Pen(app), Highlighter(app), Eraser(app), Ruler(app), 
-                    Lasso(app), PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app)])
-    allIconUrls = ([pencilUrl, penUrl, highlighterUrl, eraserUrl, rulerUrl, lassoUrl, 
-                    preloadedShapesToolUrl, shapeAutocorrectUrl, pageModeUrl])
+    undoUrl = 'https://raw.githubusercontent.com/alanpham06/alan-15112TP/refs/heads/main/src/writing-tool-icons/undo-icon.jpg'
+    resetUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/reset-icon.jpg?raw=true'
+    writingTools = ([Pencil(app), Pen(app), Highlighter(app), Eraser(app), Lasso(app), 
+                     PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app),
+                     Undo(app), Reset(app)])
+    allIconUrls = ([pencilUrl, penUrl, highlighterUrl, eraserUrl, lassoUrl, 
+                    preloadedShapesToolUrl, shapeAutocorrectUrl, pageModeUrl,
+                    undoUrl, resetUrl])
     allWritingToolIcons = dict()
     iconWidth = 70
     iconHeight = 65
@@ -269,14 +281,6 @@ def makeCursorLines(pilImage):
     draw.line((imageWidth//2, 0, imageWidth//2, imageHeight), width=3, fill='black')
     draw.line((0, imageHeight//2, imageWidth, imageHeight//2), width=3, fill='black')
 
-def makeRulerLines(pilImage):
-    draw = ImageDraw.Draw(pilImage)
-    imageWidth, imageHeight = pilImage.size
-    # Add the tallies to the ruler
-    for i in range(imageWidth):
-        if i%20 == 0:
-            draw.line((i, 0, i, imageHeight//4), width=3, fill='black')
-
 def onAppStart(app): 
     app.keys = []
     app.background = 'floralWhite'
@@ -311,14 +315,14 @@ def onAppStart(app):
     # Tool bar properties
     app.toolBarX = rounded(app.width * 0.1)
     app.toolBarY = rounded(app.height * 0.01)
-    app.toolBarWidth = rounded(app.width * 0.8)
+    app.toolBarWidth = rounded(app.width * 0.85)
     app.toolBarHeight = rounded(app.height * 0.1)
     app.toolBarColor = 'lightGray'
     app.toolBarBGColor = 'silver'
 
     # Writing utensils icons in tool bar
     app.iconUpperLeftCorners = []
-    numOfIcons = 9
+    numOfIcons = 10
     for i in range(numOfIcons):
         spacingBtwIcons = rounded(app.toolBarWidth/numOfIcons)
         cornerX = app.toolBarX + rounded(app.toolBarX * 0.1)
@@ -327,8 +331,9 @@ def onAppStart(app):
     app.iconWidth = rounded(spacingBtwIcons * 0.8)
     app.iconHeight = rounded(app.toolBarHeight * 0.8)
 
-    app.writingTools = ([Pencil(app), Pen(app), Highlighter(app), Eraser(app), Ruler(app), 
-                         Lasso(app), PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app)])
+    app.writingTools = ([Pencil(app), Pen(app), Highlighter(app), Eraser(app), Lasso(app), 
+                         PreloadedShapesTool(app), ShapeAutocorrect(app), PageMode(app), 
+                         Undo(app), Reset(app)])
     app.writingToolsIcons = allWritingToolIcons(app)
 
     # Writing Tool Properties
@@ -351,7 +356,8 @@ def onAppStart(app):
         app.sizeMenuUpperLeftCorners.append((left, top))
     app.sizeMenuColor = 'gainsboro'
     app.sizeButtonColors = ['aliceBlue', 'azure', 'aliceBlue']
-    app.sizeButtonLabels = ['-', f'{app.pencilLineWidth}', '+']
+    app.sizeButtonLabels = ['-', '', '+']
+    app.currSize = None
 
     # Shape Autocorrect Trackers
     app.startAutoX = None
@@ -368,20 +374,6 @@ def onAppStart(app):
     app.selectLines = []
     app.startPoint = []
     app.autoRadius = 10
-
-    # Ruler Properties
-    app.ruler = None
-    app.rulerMoveMode = True
-    app.rulerRotateMode = False
-    app.rulerCx = app.width//2
-    app.rulerCy = app.height//2
-    app.rulerWidth = rounded(((app.width**2) + (app.height**2))**0.5)
-    app.rulerHeight = 80
-    # (1) Initialize the ruler as PIL Image
-    rulerBgColor = 'lightSkyBlue'
-    drawRuler = makePilImage(app.rulerWidth, app.rulerHeight, rulerBgColor)
-    makeRulerLines(drawRuler)
-    app.cmuRuler = CMUImage(drawRuler)
 
     # Preloaded Shapes Tool Trackers
     app.regPolyCx, app.regPolyCy = None, None
@@ -404,7 +396,7 @@ def redrawAll(app):
     if (app.selectedWritingTool != None) and (app.selectedWritingTool.mode):
         indx = app.writingTools.index(app.selectedWritingTool)
         leftX, topY = app.iconUpperLeftCorners[indx]
-        drawRect(leftX, topY, app.iconWidth, app.iconHeight, fill='yellow', opacity=20)
+        drawRect(leftX, topY, app.iconWidth+2, app.iconHeight, fill='yellow', opacity=20)
     # Draw proper dropdown menu for each tool
     if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode) or
         (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode) or 
@@ -415,19 +407,17 @@ def redrawAll(app):
         for i in range(len(app.sizeMenuUpperLeftCorners)):
             left, top = app.sizeMenuUpperLeftCorners[i]
             drawRect(left, top, app.buttonWidth, app.buttonHeight, fill=app.sizeButtonColors[i], border='black')
-            drawLabel(app.sizeButtonLabels[i], (left+app.buttonWidth//2), 
-                      top+app.buttonHeight//2, size=(30 if i%2 == 0 else 15), bold=True)
+            if i%2==0:
+                drawLabel(app.sizeButtonLabels[i], (left+app.buttonWidth//2), 
+                          top+app.buttonHeight//2, size=30, bold=True)
+            else:
+                drawLabel(app.currSize, (left+app.buttonWidth//2), 
+                          top+app.buttonHeight//2, size=15, bold=True, font='orbitron')
 
     # Draw cursor
     if ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
         drawCircle(app.cursorX, app.cursorY, app.eraserRadius, fill=None, border='dimGray', dashes=True)
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
-
-    # Draw Ruler
-    if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
-        drawImage(app.cmuRuler, app.rulerCx, app.rulerCy, width=app.rulerWidth, height=app.rulerHeight, 
-                opacity=app.ruler.opacity, rotateAngle=app.ruler.angle, align='center')
-        drawLabel(f'{(app.ruler.angle * -1)}°', app.rulerCx, app.rulerCy, fill='black', size=15)
     
     if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
         ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)) or 
@@ -487,28 +477,34 @@ def onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool = currWritingTool
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
+    
+    # Allows for button presses to alter size of writing tools
+    selection = getSizeCounter(app, mouseX, mouseY)
+    if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
+        if (selection == '-') and (app.pencilLineWidth > 1):
+            app.pencilLineWidth -= 0.25
+        elif (selection == '+'):
+            app.pencilLineWidth += 0.25
+        app.currSize = app.pencilLineWidth
+    elif ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)):
+        if (selection == '-') and (app.pencilLineWidth > 1):
+            app.penLineWidth -= 0.25
+        elif (selection == '+'):
+            app.penLineWidth += 0.25
+        app.currSize = app.penLineWidth
+    elif ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
+        if (selection == '-') and (app.pencilLineWidth > 1):
+            app.highlighterLineWidth -= 0.25
+        elif (selection == '+'):
+            app.highlighterLineWidth += 0.25
+        app.currSize = app.highlighterLineWidth
+    elif ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
+        if (selection == '-') and (app.eraserRadius > 1):
+            app.eraserRadius -= 1
+        elif (selection == '+'):
+            app.eraserRadius += 1
+        app.currSize = app.eraserRadius
 
-    if ((mouseY < app.toolBarY+app.toolBarHeight) and (mouseX > app.toolBarX) 
-        and (mouseX < app.toolBarX+app.toolBarWidth)):
-        selection = getSizeCounter(app, mouseX, mouseY)
-        if ((selection != None) and (app.selectedWritingTool == Pencil(app)) and 
-            (app.selectedWritingTool.mode)):
-            if (selection == '-') and (app.pencilLineWidth > 1):
-                app.pencilLineWidth -= 0.25
-            elif (selection == '+'):
-                app.pencilLineWidth += 0.25
-            app.sizeButtonLabels[1] = f'{app.pencilLineWidth}'
-        elif ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)):
-            pass
-        elif ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
-            if (selection == '-') and (app.eraserRadius > 1):
-                app.eraserRadius -= 1
-            elif (selection == '+'):
-                app.eraserRadius += 1
-            app.sizeButtonLabels[1] = f'{app.eraserRadius}'
-
-    if ((app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode)):
-        app.ruler = Ruler(app)
 
     if ((app.selectedWritingTool == PreloadedShapesTool(app)) and (app.selectedWritingTool.mode)):
         if ((app.regPolyCx != None) and (app.regPolyCy != None) and 
@@ -709,49 +705,11 @@ def onKeyHold(app, keys):
                     for i in range(1, len(lassoItem.points), 2):
                         lassoItem.points[i] += yShift
 
-    # Add a rotate mode and a move ruler mode; also implement ruler logic
-    elif (app.selectedWritingTool == Ruler(app)) and (app.selectedWritingTool.mode):
-        if ('r' in app.keys):
-            app.rulerRotateMode = True
-            app.rulerMoveMode = False
-        elif ('m' in app.keys):
-            app.rulerRotateMode = False
-            app.rulerMoveMode = True
-
-        if (app.rulerRotateMode) and (not app.rulerMoveMode):
-            if ('right' in app.keys) or ('d' in app.keys):
-                app.ruler.angle += 1
-            elif ('left' in app.keys) or ('a' in app.keys):
-                app.ruler.angle -= 1
-        elif (not app.rulerRotateMode) and (app.rulerMoveMode):
-            if (('right' in app.keys) and ('up' in app.keys)) or (('d' in app.keys) and ('w' in app.keys)):
-                app.rulerCx += 3
-                app.rulerCy -= 3
-            elif (('right' in app.keys) and ('down' in app.keys)) or (('d' in app.keys) and ('s' in app.keys)):
-                app.rulerCx += 3
-                app.rulerCy += 3
-            elif (('left' in app.keys) and ('up' in app.keys)) or (('a' in app.keys) and ('w' in app.keys)):
-                app.rulerCx -= 3
-                app.rulerCy -= 3
-            elif (('left' in app.keys) and ('down' in app.keys)) or (('a' in app.keys) and ('s' in app.keys)):
-                app.rulerCx -= 3
-                app.rulerCy += 3
-            elif ('right' in app.keys) or ('d' in app.keys):
-                app.rulerCx += 3
-                app.rulerCy += 0
-            elif ('left' in app.keys) or ('a' in app.keys):
-                app.rulerCx -= 3
-                app.rulerCy += 0
-            elif ('up' in app.keys) or ('w' in app.keys):
-                app.rulerCx += 0
-                app.rulerCy -= 3
-            elif ('down' in app.keys) or ('s' in app.keys):
-                app.rulerCx += 0
-                app.rulerCy += 3
     pass
 
 def onKeyRelease(app, key):
-    app.keys.remove(key)
+    if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode):
+        app.keys.remove(key)
     pass
 
 def onKeyPress(app, key):
