@@ -341,23 +341,43 @@ def onAppStart(app):
     app.eraserRadius = 15
     app.penLineWidth = 3
     app.highlighterLineWidth = 15
+    app.penColor = 'black'
+    app.highlighterColor = 'yellow'
 
     # Pencil/Pen/Highlighter/Eraser Size Dropdown Menu
     app.sizeMenuX = app.toolBarX 
     app.sizeMenuY = app.toolBarY + app.toolBarHeight
-    app.sizeMenuWidth = rounded(app.toolBarWidth*0.25)
+    app.sizeMenuWidth = rounded(app.toolBarWidth*0.2)
     app.sizeMenuHeight = rounded(app.toolBarHeight*0.75)
     app.sizeMenuUpperLeftCorners = []
-    app.offset = 10
+    sizeOffset = 10
     app.buttonWidth = 50
-    app.buttonHeight = app.sizeMenuHeight - (app.offset*2)
+    app.buttonHeight = app.sizeMenuHeight - (sizeOffset*2)
     for i in range(3):
-        left, top = app.sizeMenuX+app.offset + app.buttonWidth*i, app.sizeMenuY+app.offset
+        left, top = app.sizeMenuX+sizeOffset + app.buttonWidth*i, app.sizeMenuY+sizeOffset
         app.sizeMenuUpperLeftCorners.append((left, top))
     app.sizeMenuColor = 'gainsboro'
     app.sizeButtonColors = ['aliceBlue', 'azure', 'aliceBlue']
     app.sizeButtonLabels = ['-', '', '+']
     app.currSize = None
+
+    # Color Selection Dropdown Menu
+    app.colorMenuX = app.sizeMenuX + app.sizeMenuWidth
+    app.colorMenuY = app.toolBarY + app.toolBarHeight
+    app.colorMenuWidth = rounded(app.toolBarWidth-app.sizeMenuWidth)
+    app.colorMenuHeight = rounded(app.toolBarHeight*0.75)
+    numOfColors = 10
+    colorOffset = app.colorMenuWidth//numOfColors
+    app.colorMenuCenters = []
+    app.colorPaletteR = (app.colorMenuHeight*0.7)//2
+    for i in range(numOfColors):
+        colorCx = app.colorMenuX + app.colorPaletteR+5 + (colorOffset*i)
+        colorCy = app.colorMenuY + app.colorPaletteR+10
+        app.colorMenuCenters.append((colorCx, colorCy))
+    app.colorMenuColor = 'gainsboro'
+    app.colorMenuOptions = (['crimson', 'darkOrange', 'gold', 'forestGreen', 'royalBlue', 
+                             'midnightBlue','violet', 'lightPink', 'saddleBrown', 'black'])
+    app.selectedColor = None
 
     # Shape Autocorrect Trackers
     app.startAutoX = None
@@ -413,6 +433,16 @@ def redrawAll(app):
             else:
                 drawLabel(app.currSize, (left+app.buttonWidth//2), 
                           top+app.buttonHeight//2, size=15, bold=True, font='orbitron')
+    
+    if ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode) or 
+          (app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
+        drawRect(app.colorMenuX, app.colorMenuY, app.colorMenuWidth, 
+                 app.colorMenuHeight, fill=app.colorMenuColor)
+        for i in range(len(app.colorMenuCenters)):
+            cx, cy = app.colorMenuCenters[i]
+            color = app.colorMenuOptions[i]
+            drawCircle(cx, cy, app.colorPaletteR, fill=color, 
+                       border=('yellow' if app.selectedColor==i else None))
 
     # Draw cursor
     if ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
@@ -479,33 +509,43 @@ def onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
     
     # Allows for button presses to alter size of writing tools
-    selection = getSizeCounter(app, mouseX, mouseY)
+    sizeSelection = getSizeCounter(app, mouseX, mouseY)
     if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
-        if (selection == '-') and (app.pencilLineWidth > 1):
+        if (sizeSelection == '-') and (app.pencilLineWidth > 1):
             app.pencilLineWidth -= 0.25
-        elif (selection == '+'):
+        elif (sizeSelection == '+'):
             app.pencilLineWidth += 0.25
         app.currSize = app.pencilLineWidth
     elif ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)):
-        if (selection == '-') and (app.pencilLineWidth > 1):
+        if (sizeSelection == '-') and (app.pencilLineWidth > 1):
             app.penLineWidth -= 0.25
-        elif (selection == '+'):
+        elif (sizeSelection == '+'):
             app.penLineWidth += 0.25
         app.currSize = app.penLineWidth
     elif ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
-        if (selection == '-') and (app.pencilLineWidth > 1):
+        if (sizeSelection == '-') and (app.pencilLineWidth > 1):
             app.highlighterLineWidth -= 0.25
-        elif (selection == '+'):
+        elif (sizeSelection == '+'):
             app.highlighterLineWidth += 0.25
         app.currSize = app.highlighterLineWidth
     elif ((app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode)):
-        if (selection == '-') and (app.eraserRadius > 1):
+        if (sizeSelection == '-') and (app.eraserRadius > 1):
             app.eraserRadius -= 1
-        elif (selection == '+'):
+        elif (sizeSelection == '+'):
             app.eraserRadius += 1
         app.currSize = app.eraserRadius
-
-
+    
+    # Allows for users to choose their colors
+    colorIndx = getColorSelection(app, mouseX, mouseY)
+   
+    if (colorIndx != None):
+        colorSelection = app.colorMenuOptions[colorIndx]
+        app.selectedColor = colorIndx
+        if ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)):
+            app.penColor = colorSelection
+        elif ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
+            app.highlighterColor = colorSelection
+            
     if ((app.selectedWritingTool == PreloadedShapesTool(app)) and (app.selectedWritingTool.mode)):
         if ((app.regPolyCx != None) and (app.regPolyCy != None) and 
             (app.regPolyR != None) and (app.regPolyPoints != None)):
@@ -551,11 +591,12 @@ def onMouseDrag(app, mouseX, mouseY):
             app.allLines.append(pencilLine)
         elif (app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode):
             penLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
+            penLine.color = app.penColor
             penLine.lineWidth = app.penLineWidth
             app.allLines.append(penLine)
         elif (app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode):
             highlighterLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
-            highlighterLine.color = 'yellow'
+            highlighterLine.color = app.highlighterColor
             highlighterLine.lineWidth = app.highlighterLineWidth
             highlighterLine.opacity = 40
             app.allLines.append(highlighterLine)
@@ -704,7 +745,9 @@ def onKeyHold(app, keys):
                         lassoItem.points[i] += xShift
                     for i in range(1, len(lassoItem.points), 2):
                         lassoItem.points[i] += yShift
-
+                elif isinstance(lassoItem, RegPolygon):
+                    lassoItem.cx += xShift
+                    lassoItem.cy += yShift
     pass
 
 def onKeyRelease(app, key):
@@ -724,6 +767,13 @@ def onKeyPress(app, key):
     pass
 
 # Helper functions used throughout the program
+def getColorSelection(app, mouseX, mouseY):
+    for i in range(len(app.colorMenuCenters)):
+        cx, cy = app.colorMenuCenters[i]
+        if distance(cx, cy, mouseX, mouseY) < app.colorPaletteR:
+            return i
+    return None
+
 def getSizeCounter(app, mouseX, mouseY):
     for i in range(len(app.sizeMenuUpperLeftCorners)):
         left, top = app.sizeMenuUpperLeftCorners[i]
