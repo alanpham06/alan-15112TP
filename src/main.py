@@ -309,7 +309,7 @@ def makeGridPage(pilImage):
 
 def onAppStart(app): 
     # Initializes *OpenSketch* Title Screen picture 
-    openSketchUrl = 'https://raw.githubusercontent.com/alanpham06/alan-15112TP/refs/heads/main/src/writing-tool-icons/OpenSketch%20Title%20Screen%201.webp'
+    openSketchUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/openSketch-titlescreen-final.jpg?raw=true'
     titlePILImage = loadPilImage(openSketchUrl)
     titleWidth, titleHeight = 1000, 800
     titlePILImgResize = titlePILImage.resize((titleWidth, titleHeight))
@@ -320,9 +320,9 @@ def onAppStart(app):
     app.buttonColor2 = rgb(85, 197, 242)
     app.buttonColor3 = rgb(21, 144, 194)
     app.buttonColor4 = rgb(1, 84, 117)
-    app.drawButtonX, app.drawButtonY = None, None
-    app.instructButtonX, app.instructButtonY = None, None
-    app.buttonWidth, app.buttonHeight = None, None
+    app.drawButtonX, app.drawButtonY = 250, 685
+    app.instructButtonX, app.instructButtonY = 555, 685
+    app.titleButtonWidth, app.titleButtonHeight = 220, 75
 
     # Variables for the main sketchboard
     app.keys = []
@@ -469,6 +469,12 @@ def onAppStart(app):
 
 def intro_redrawAll(app):
     drawImage(app.openSketchImg, 0, 0)
+    drawRect(app.drawButtonX, app.drawButtonY, app.titleButtonWidth, app.titleButtonHeight, 
+             fill=gradient(app.buttonColor1, app.buttonColor2, app.buttonColor3, app.buttonColor4, 
+             start='right-top'), border='aliceBlue', borderWidth=4)
+    drawRect(app.instructButtonX, app.instructButtonY, app.titleButtonWidth+13, app.titleButtonHeight, 
+             fill=gradient(app.buttonColor1, app.buttonColor2, app.buttonColor3, app.buttonColor4, 
+             start='left-top'), border='aliceBlue', borderWidth=4)
     pass
 
 def main_redrawAll(app):
