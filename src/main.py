@@ -308,6 +308,23 @@ def makeGridPage(pilImage):
         draw.line((startX+(offset*i), 0, startX+(offset*i), imageHeight), width=3, fill='lightSkyBlue')
 
 def onAppStart(app): 
+    # Initializes *OpenSketch* Title Screen picture 
+    openSketchUrl = 'https://raw.githubusercontent.com/alanpham06/alan-15112TP/refs/heads/main/src/writing-tool-icons/OpenSketch%20Title%20Screen%201.webp'
+    titlePILImage = loadPilImage(openSketchUrl)
+    titleWidth, titleHeight = 1000, 800
+    titlePILImgResize = titlePILImage.resize((titleWidth, titleHeight))
+    app.openSketchImg = CMUImage(titlePILImgResize)
+
+    # Button Colors
+    app.buttonColor1 = rgb(135, 203, 230)
+    app.buttonColor2 = rgb(85, 197, 242)
+    app.buttonColor3 = rgb(21, 144, 194)
+    app.buttonColor4 = rgb(1, 84, 117)
+    app.drawButtonX, app.drawButtonY = None, None
+    app.instructButtonX, app.instructButtonY = None, None
+    app.buttonWidth, app.buttonHeight = None, None
+
+    # Variables for the main sketchboard
     app.keys = []
     app.background = 'white'
 
@@ -449,7 +466,12 @@ def onAppStart(app):
 
 # Referenced CMU Graphics Documentation to understand certain functions like Drawing Shapes
 # Link: https://academy.cs.cmu.edu/docs 
-def redrawAll(app):
+
+def intro_redrawAll(app):
+    drawImage(app.openSketchImg, 0, 0)
+    pass
+
+def main_redrawAll(app):
     # Initializes the page 
     if app.currPageMode == 'white':
         drawImage(app.whitePage, app.screenX, app.screenY)
@@ -545,7 +567,7 @@ def redrawAll(app):
             drawLine(x0, y0, x1, y1, fill=lassoLine.color, lineWidth=lassoLine.lineWidth)
     pass
 
-def onMousePress(app, mouseX, mouseY):
+def main_onMousePress(app, mouseX, mouseY):
     # Ensures only 1 writing tool is selected at a time
     if (getWritingUtensilSelection(app, mouseX, mouseY) != None) and (app.selectedWritingTool == None):
         selectedIndx = getWritingUtensilSelection(app, mouseX, mouseY)
@@ -640,7 +662,7 @@ def onMousePress(app, mouseX, mouseY):
         resetLassoVars(app)
     pass
 
-def onMouseDrag(app, mouseX, mouseY):
+def main_onMouseDrag(app, mouseX, mouseY):
     app.x1, app.y1 = mouseX, mouseY
 
     # Drawing continuous lines logic
@@ -685,7 +707,7 @@ def onMouseDrag(app, mouseX, mouseY):
     app.x1, app.y1 = None, None
     pass
 
-def onMouseMove(app, mouseX, mouseY):
+def main_onMouseMove(app, mouseX, mouseY):
     app.cursorX, app.cursorY = mouseX, mouseY
     if (app.selectedWritingTool == Eraser(app)) and (app.selectedWritingTool.mode):
         for item in app.allObjects:
@@ -709,7 +731,7 @@ def onMouseMove(app, mouseX, mouseY):
                     app.allObjects.remove(item)
     pass
     
-def onMouseRelease(app, mouseX, mouseY):
+def main_onMouseRelease(app, mouseX, mouseY):
     if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
         ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)) or 
         ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode))):
@@ -775,7 +797,7 @@ def onMouseRelease(app, mouseX, mouseY):
     app.curorsX, app.cursorY = mouseX, mouseY
     pass
 
-def onKeyHold(app, keys):
+def main_onKeyHold(app, keys):
     if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
         xShift, yShift = 0, 0
         if (('right' in app.keys) and ('up' in app.keys)) or (('d' in app.keys) and ('w' in app.keys)):
@@ -822,12 +844,12 @@ def onKeyHold(app, keys):
                     lassoItem.cy += yShift
     pass
 
-def onKeyRelease(app, key):
+def main_onKeyRelease(app, key):
     if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode):
         app.keys.remove(key)
     pass
 
-def onKeyPress(app, key):
+def main_onKeyPress(app, key):
     if ((key == 'r') and (app.selectedWritingTool == ShapeAutocorrect(app)) and 
         (app.selectedWritingTool.mode) and (app.traceLines != [])):
         resetShapeAutocorrectVars(app)
@@ -941,6 +963,6 @@ def distance(x0, y0, x1, y1):
     return ((x1-x0)**2 + (y1-y0)**2)**0.5
 
 def main():
-    runApp(width=1000, height=800)
+    runAppWithScreens(initialScreen='intro', width=1000, height=800)
 
 main()
