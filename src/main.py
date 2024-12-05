@@ -281,9 +281,35 @@ def makeCursorLines(pilImage):
     draw.line((imageWidth//2, 0, imageWidth//2, imageHeight), width=3, fill='black')
     draw.line((0, imageHeight//2, imageWidth, imageHeight//2), width=3, fill='black')
 
+def makeLinedPage(pilImage):
+    draw = ImageDraw.Draw(pilImage)
+    imageWidth, imageHeight = pilImage.size
+    # Add the lines for lined page
+    startY = 40
+    numOfLines = 15
+    offset = imageHeight//numOfLines
+    for i in range(numOfLines):
+        draw.line((0, startY+(offset*i), imageWidth, startY+(offset*i)), width=3, 
+                  fill=('red' if i==0 else 'lightSkyBlue'))
+        
+def makeGridPage(pilImage):
+    draw = ImageDraw.Draw(pilImage)
+    imageWidth, imageHeight = pilImage.size
+    # Add the lines for lined page
+    startX, startY = 0, 0
+    
+    numOfHorizonatalLines = 16
+    numOfVerticalLines = 24
+    offset = imageHeight//numOfHorizonatalLines
+    for i in range(numOfHorizonatalLines+1):
+        draw.line((0, startY+(offset*i), imageWidth, startY+(offset*i)), 
+                  width=3, fill='lightSkyBlue')
+    for i in range(numOfVerticalLines+1):
+        draw.line((startX+(offset*i), 0, startX+(offset*i), imageHeight), width=3, fill='lightSkyBlue')
+
 def onAppStart(app): 
     app.keys = []
-    app.background = 'floralWhite'
+    app.background = 'white'
 
     # Line spacing logic
     app.absXDiff = 0.1
@@ -379,6 +405,26 @@ def onAppStart(app):
                              'midnightBlue','violet', 'lightPink', 'saddleBrown', 'black'])
     app.selectedColor = None
 
+    # Screen properties
+    app.currPageMode = 'white'
+    app.currPageIndxTracker = 0
+    app.allPageModes = ['white', 'lined', 'grid']
+    buffer = 10
+    app.screenX, app.screenY = buffer, app.toolBarY+app.toolBarHeight+app.sizeMenuHeight
+    app.screenWidth = app.width-(buffer*2)
+    app.screenHeight = app.height - (app.screenY+10)
+    # (1) Initialize the screens as PIL Images
+    screenBgColor = (0, 0, 0, 1)
+    drawWhitePage = makePilImage(app.screenWidth, app.screenHeight, screenBgColor)
+    drawLinedPage = makePilImage(app.screenWidth, app.screenHeight, screenBgColor)
+    drawGridPage = makePilImage(app.screenWidth, app.screenHeight, screenBgColor)
+    makeLinedPage(drawLinedPage)
+    makeGridPage(drawGridPage)
+    # (1) Convert page types into CMU images
+    app.whitePage = CMUImage(drawWhitePage)
+    app.linedPage = CMUImage(drawLinedPage)
+    app.gridPage = CMUImage(drawGridPage)
+
     # Shape Autocorrect Trackers
     app.startAutoX = None
     app.startAutoY = None
@@ -404,6 +450,13 @@ def onAppStart(app):
 # Referenced CMU Graphics Documentation to understand certain functions like Drawing Shapes
 # Link: https://academy.cs.cmu.edu/docs 
 def redrawAll(app):
+    # Initializes the page 
+    if app.currPageMode == 'white':
+        drawImage(app.whitePage, app.screenX, app.screenY)
+    elif app.currPageMode == 'lined':
+        drawImage(app.linedPage, app.screenX, app.screenY)
+    elif app.currPageMode == 'grid':
+        drawImage(app.gridPage, app.screenX, app.screenY)
     # Draw tool bar + design
     drawRect(app.toolBarX, app.toolBarY-5, app.toolBarWidth+5, app.toolBarHeight+5, fill=app.toolBarBGColor)
     drawRect(app.toolBarX, app.toolBarY, app.toolBarWidth, app.toolBarHeight, fill=app.toolBarColor)
@@ -449,6 +502,26 @@ def redrawAll(app):
         drawCircle(app.cursorX, app.cursorY, app.eraserRadius, fill=None, border='dimGray', dashes=True)
     drawImage(app.cmuCursor, app.cursorX, app.cursorY, align='center')
     
+    
+    # Maintains all of the things already drawn on paper
+    for item in app.allObjects:
+        if isinstance(item, Circle):
+            cx, cy, r = item.cx, item.cy, item.r
+            drawCircle(cx, cy, r, fill=item.fill, border=item.border, 
+                       borderWidth=item.borderWidth, opacity=item.opacity, dashes=item.dashes)
+        elif isinstance(item, Line):
+            x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
+            drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth, opacity=item.opacity)
+        elif isinstance(item, Polygon):
+            allPoints = item.points
+            drawPolygon(*allPoints, fill=item.fill, border=item.border, 
+                        borderWidth=item.borderWidth, opacity=item.opacity)
+        elif isinstance(item, RegPolygon):
+            regCx, regCy, regR, regPts = item.cx, item.cy, item.r, item.points
+            drawRegularPolygon(regCx, regCy, regR, regPts, fill=item.fill, border=item.border, 
+                        borderWidth=item.borderWidth, opacity=item.opacity)
+    
+    # Shows the item that are currently being drawn on top (most recently)
     if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
         ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode)) or 
         ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode))):
@@ -470,24 +543,6 @@ def redrawAll(app):
         for lassoLine in app.selectLines:
             x0, y0, x1, y1 = lassoLine.x0, lassoLine.y0, lassoLine.x1, lassoLine.y1
             drawLine(x0, y0, x1, y1, fill=lassoLine.color, lineWidth=lassoLine.lineWidth)
-    
-    # Maintains all of the things already drawn on paper
-    for item in app.allObjects:
-        if isinstance(item, Circle):
-            cx, cy, r = item.cx, item.cy, item.r
-            drawCircle(cx, cy, r, fill=item.fill, border=item.border, 
-                       borderWidth=item.borderWidth, opacity=item.opacity, dashes=item.dashes)
-        elif isinstance(item, Line):
-            x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
-            drawLine(x0, y0, x1, y1, fill=item.color, lineWidth=item.lineWidth, opacity=item.opacity)
-        elif isinstance(item, Polygon):
-            allPoints = item.points
-            drawPolygon(*allPoints, fill=item.fill, border=item.border, 
-                        borderWidth=item.borderWidth, opacity=item.opacity)
-        elif isinstance(item, RegPolygon):
-            regCx, regCy, regR, regPts = item.cx, item.cy, item.r, item.points
-            drawRegularPolygon(regCx, regCy, regR, regPts, fill=item.fill, border=item.border, 
-                        borderWidth=item.borderWidth, opacity=item.opacity)
     pass
 
 def onMousePress(app, mouseX, mouseY):
@@ -508,6 +563,17 @@ def onMousePress(app, mouseX, mouseY):
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
     
+    # Allows user to change page mode, undo most recent item drawn, or clear the entire canvas
+    if ((app.selectedWritingTool == PageMode(app)) and (app.selectedWritingTool.mode)):
+        app.currPageIndxTracker += 1
+        selectedPageIndex = app.currPageIndxTracker%3
+        app.currPageMode = app.allPageModes[selectedPageIndex]
+    elif ((app.selectedWritingTool == Undo(app)) and (app.selectedWritingTool.mode)):
+        if app.allObjects != []:
+            app.allObjects.pop()
+    elif ((app.selectedWritingTool == Reset(app)) and (app.selectedWritingTool.mode)):
+        app.allObjects = []
+
     # Allows for button presses to alter size of writing tools
     sizeSelection = getSizeCounter(app, mouseX, mouseY)
     if ((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)):
@@ -562,7 +628,7 @@ def onMousePress(app, mouseX, mouseY):
                                     (radius),(number of points)''')
             app.regPolyR, app.regPolyPoints = getRegPolyFeatures(response)
         
-    
+    # Allows user to dismiss lasso once item in the intended location 
     if (app.autoCx != None) and (distance(app.autoCx, app.autoCy, mouseX, mouseY) > app.autoR):
         app.autoCx, app.autoCy, app.autoR = None, None, None
         for item in app.allObjects:
@@ -579,8 +645,7 @@ def onMouseDrag(app, mouseX, mouseY):
 
     # Drawing continuous lines logic
     if (((abs(app.cursorX - app.x1) > app.absXDiff) or (abs(app.cursorY - app.y1) > app.absYDiff)) and 
-        ((app.y1 > app.toolBarY+app.toolBarHeight) or (app.x1 < app.toolBarX) 
-        or (app.x1 > app.toolBarX+app.toolBarWidth))):
+        ((app.y1 > app.toolBarY+app.toolBarHeight+app.sizeMenuHeight))):
         if (app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode):
             pencilLine = Line(app.cursorX, app.cursorY, app.x1, app.y1)
             # Referenced palettemaker.com to find rgb value of graphite for pencil
@@ -678,24 +743,31 @@ def onMouseRelease(app, mouseX, mouseY):
             newSelectCir.selected = True
             app.allObjects.append(newSelectCir)
             # Marks all of the items on screen that was selected
+            numSelected = 0
             for item in app.allObjects:
                 if isinstance(item, Line):
                     x0, y0, x1, y1 = item.x0, item.y0, item.x1, item.y1
                     if ((distance(x0, y0, app.autoCx, app.autoCy) <= app.autoR) and 
                         (distance(x1, y1, app.autoCx, app.autoCy) <= app.autoR)):
                         item.selected = True
+                        numSelected += 1
                 elif isinstance(item, Circle) and (item.dashes != True):
                     cirCx, cirCy = item.cx, item.cy
                     if distance(cirCx, cirCy, app.autoCx, app.autoCy) < app.autoR:
                         item.selected = True
+                        numSelected += 1
                 elif isinstance(item, Polygon):
                     polyCx, polyCy = findPolygonCenter(item.points)
                     if distance(polyCx, polyCy, app.autoCx, app.autoCy) < app.autoR:
                         item.selected = True
+                        numSelected += 2
                 elif isinstance(item, RegPolygon):
                     regPolyCx, regPolyCy = item.cx, item.cy
                     if distance(regPolyCx, regPolyCy, app.autoCx, app.autoCy) < app.autoR:
                         item.selected = True
+                        numSelected += 1
+            if numSelected == 0:
+                app.allObjects.remove(newSelectCir)
             resetLassoVars(app)
         else:
             resetLassoVars(app)
