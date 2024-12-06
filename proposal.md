@@ -1,13 +1,13 @@
 # alan-15112TP
-Alan Pham's FY Fall CMU 15112 Term Project 
+Alan Pham's FY Fall 2024 CMU 15112 Term Project 
 
 Project Title: **OpenSketch**
 
 Description: 
 
-OpenSketch is a digital canvas where users can make their ideas come to life via drawing. The users will be able to use a variety of writing utensils including pens, pencils, and brushes with customizeable features like size, color, and opacity. The highlighted features of the app are the lasso mode and shape autocorrect mode. When the lasso mode is activated, the user should be able to group any drawings or writing that they have already made and move it, resize it, rotate it, or change certain properties. When the shape autocorrect mode is enabled, it should properly detect what kind of polygon the user is trying to draw and redraw a perfect polygon around the same size and area that the user orginially intended. 
+OpenSketch is a digital canvas where users can make their ideas come to life via drawing. The users will be able to use a variety of writing utensils including pens, pencils, and highlighters with customizeable features like size, color, etc. The highlighted features of the app are the lasso mode and shape autocorrect mode. When the lasso mode is activated, the user should be able to group any drawings or writing that they have already made and move it around the canvas and change its color properties. When the shape autocorrect mode is enabled, it should properly detect what kind of polygon the user is trying to draw and redraw a perfect polygon around the same size and area that the user orginially intended. 
 
-While those are the two core features that will be the highlight of the app, I would like to incoporate other useful features into the app. For instance, a page mode that allows the user to choose to whether they want to draw on a blank, lined, or graph paper; a shape and ruler tool that helps users draw perfect shapes and lines; and an organized filing system so that users can save and organize their drawings or notes. 
+While those are the two core features that will be the highlight of the app, I would like to incoporate other useful features into the app. For instance, a page mode that allows the user to choose to whether they want to draw on a blank, lined, or graph paper; a preloaded shape tool that helps users draw perfect regular polygons; and an undo and reset button. 
 
 Lasso Mode Feature in OneNote:
 [Lasso Mode pt.1](https://drive.google.com/file/d/1VewHUK3euSShBDbIQqShjk0EpREby5lB/view?usp=drive_link)
@@ -40,6 +40,14 @@ My primary plan for version control and backing up my code will be through my pe
 Tech List:
 - None / No external tech modules
 
-OpenSketch Storyboard:
+OpenSketch Storyboard: 
 
-[Alan Pham - 15112 Storyboard](https://github.com/alanpham06/alan-15112TP/blob/main/Alan%20Pham%20-%2015112%20TP1%20Storyboard.pdf)
+I designed my storyboard on OneNote. I roughly modeled the design of my project and demonstrated some features.  
+
+[Alan Pham - 15112 Storyboard](https://github.com/alanpham06/alan-15112TP/blob/main/Alan%20Pham%20-%2015112%20Final%20Story%20Board%20(TP3).pdf)
+
+OpenSketch Tool Guide: 
+
+I designed my Tool Guide on Google Drawing. I made a detailed writing tool guide that explains the function of each writing tool to the user. 
+
+[Alan Pham - 15112 Tool Guide](https://github.com/alanpham06/alan-15112TP/blob/main/Alan%20Pham%20-%2015112%20Final%20OpenSketch%20Tool%20Guide.pdf)
