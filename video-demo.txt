@@ -1,2 +1,3 @@
 OpenSketch Video Demo - Alan Pham's 15112 TP 
-[Insert video link here + description]
+OpenSketch - Alan Pham's 15112 TP Demo Video
+Link: https://youtu.be/6uvugHbjXPc
