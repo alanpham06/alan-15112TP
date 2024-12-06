@@ -25,7 +25,7 @@ class Circle:
         self.fill = None
         self.border = 'black'
         self.borderWidth = 5
-        self.opacity = 70
+        self.opacity = 80
         self.dashes = False
         self.selected = False
 
@@ -39,7 +39,7 @@ class Polygon:
         self.fill = None
         self.border = 'black'
         self.borderWidth = 5
-        self.opacity = 70
+        self.opacity = 80
         self.selected = False
     
     def __repr__(self):
@@ -54,7 +54,7 @@ class RegPolygon:
         self.fill = None
         self.border = 'black'
         self.borderWidth = 3
-        self.opacity = 70
+        self.opacity = 80
         self.selected = False
     
     def __repr__(self):
@@ -328,38 +328,59 @@ def onAppStart(app):
 
     # ----------------------- OpenSketch guide screen variables ------------------------ #
     # Initializes OpenSketch Tool Guide Screen picture 
-    openSketchGuideUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/openSketch-screen-images/openSketch-guidescreen-1.jpg?raw=true'
+    openSketchGuideUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/openSketch-guidescreen-1.jpg?raw=true'
     guidePILImage = loadPilImage(openSketchGuideUrl)
     guideWidth, guideHeight = 1000, 800
     guidePILImgResize = guidePILImage.resize((guideWidth, guideHeight))
     app.openSketchGuideImg = CMUImage(guidePILImgResize)
 
     # Initializes Homescreen and Sketch Buttons
-    homeURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/openSketch-screen-images/homescreen-icon.jpg?raw=true'
+    homeURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/homescreen-icon.jpg?raw=true'
     homePILImage = loadPilImage(homeURL)
-    app.homeWidth, app.homeHeight = 75, 75
-    homePILImgResize = homePILImage.resize((app.homeWidth, app.homeHeight))
+    app.homeGuideWidth, app.homeGuideHeight = 75, 75
+    homePILImgResize = homePILImage.resize((app.homeGuideWidth, app.homeGuideHeight))
     homePILImgAdjusted = addRoundedCornersWithBG(homePILImgResize, 20, (0, 0, 0, 0))
     app.homeImg = CMUImage(homePILImgAdjusted)
-    app.homeX, app.homeY = 750, 25
-    app.homeHighlight = False
+    app.homeGuideX, app.homeGuideY = 750, 25
+    app.homeGuideHighlight = False
 
-    sketchURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/openSketch-screen-images/sketch-icon.jpg?raw=true'
+    sketchURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/sketch-icon.jpg?raw=true'
     sketchPILImage = loadPilImage(sketchURL)
-    app.sketchWidth, app.sketchHeight = 75, 75
-    sketchPILImgResize = sketchPILImage.resize((app.sketchWidth, app.sketchHeight))
+    app.sketchGuideWidth, app.sketchGuideHeight = 75, 75
+    sketchPILImgResize = sketchPILImage.resize((app.sketchGuideWidth, app.sketchGuideHeight))
     sketchPILImgAdjusted = addRoundedCornersWithBG(sketchPILImgResize, 20, (0, 0, 0, 0))
     app.sketchImg = CMUImage(sketchPILImgAdjusted)
-    app.sketchX, app.sketchY = 875, 25
+    app.sketchGuideX, app.sketchGuideY = 875, 25
+    app.sketchGuideHighlight = False
 
     # ------------------------ OpenSketch main screen variables ------------------------ #
     # Variables for the main sketchboard
     app.keys = []
     app.background = 'white'
 
+    # Homescreen and sketch button for main screen
+    homeMainURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/homescreen-icon.jpg?raw=true'
+    homeMainPILImage = loadPilImage(homeMainURL)
+    app.homeMainWidth, app.homeMainHeight = 60, 60
+    homeMainPILImgResize = homeMainPILImage.resize((app.homeMainWidth, app.homeMainHeight))
+    homeMainPILImgAdjusted = addRoundedCornersWithBG(homeMainPILImgResize, 20, (0, 0, 0, 0))
+    app.homeMainImg = CMUImage(homeMainPILImgAdjusted)
+    app.homeMainX, app.homeMainY = 872, 20
+    app.homeMainHighlight = False
+
+    guideMainURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/guide-icon.jpg?raw=true'
+    guideMainPILImage = loadPilImage(guideMainURL)
+    app.guideMainWidth, app.guideMainHeight = 60, 60
+    guideMainPILImgResize = guideMainPILImage.resize((app.guideMainWidth, app.guideMainHeight))
+    guideMainPILImgAdjusted = addRoundedCornersWithBG(guideMainPILImgResize, 20, (0, 0, 0, 0))
+    app.guideMainImg = CMUImage(guideMainPILImgAdjusted)
+    app.guideMainX, app.guideMainY = 937, 20
+    app.guideMainHighlight = False
+
     # Line spacing logic
     app.absXDiff = 0.1
     app.absYDiff = 0.1
+
     # Shape Autocorrect Spacing Logic
     app.absXDiffAuto = 3
     app.absYDiffAuto = 3
@@ -385,7 +406,7 @@ def onAppStart(app):
     app.allObjects = []
 
     # Tool bar properties
-    app.toolBarX = rounded(app.width * 0.1)
+    app.toolBarX = rounded(app.width * 0.01)
     app.toolBarY = rounded(app.height * 0.01)
     app.toolBarWidth = rounded(app.width * 0.85)
     app.toolBarHeight = rounded(app.height * 0.1)
@@ -536,37 +557,55 @@ def intro_onMousePress(app, mouseX, mouseY):
          (mouseY >= app.instructButtonY) and (mouseX <= app.instructButtonY+app.titleButtonHeight)):
         setActiveScreen('guide')
 
-
 # ---------------------------------------------------------------------------------------- #
 # -------------------- Code for the Sketch Guide/Instructions screen --------------------- #
 # ---------------------------------------------------------------------------------------- #
-
 def guide_redrawAll(app):
     # Initializes the guide / instruction page
     drawImage(app.openSketchGuideImg, 0, 0)
-    drawImage(app.homeImg, app.homeX, app.homeY)
-    if app.homeHighlight:
-        drawRect(app.homeX, app.homeY, app.homeWidth, app.homeHeight, fill='red', opacity=60)
-    drawImage(app.sketchImg, app.sketchX, app.sketchY)
-    pass
+    drawImage(app.homeImg, app.homeGuideX, app.homeGuideY)
+    drawImage(app.sketchImg, app.sketchGuideX, app.sketchGuideY)
+    if app.homeGuideHighlight:
+        drawRect(app.homeGuideX, app.homeGuideY, app.homeGuideWidth, app.homeGuideHeight, 
+        fill='honeydew', opacity=60)
+    if app.sketchGuideHighlight:
+        drawRect(app.sketchGuideX, app.sketchGuideY, app.sketchGuideWidth, app.sketchGuideHeight, 
+        fill='honeydew', opacity=60)
 
 def guide_onMouseMove(app, mouseX, mouseY):
-    if ((mouseX >= app.homeX) and (mouseX <= app.homeX+app.homeWidth) and 
-        (mouseY >= app.homeY) and (mouseX <= app.homeY+app.homeHeight)):
-        app.homeHighlight = True
+    if ((mouseX >= app.homeGuideX) and (mouseX <= app.homeGuideX+app.homeGuideWidth) and 
+        (mouseY >= app.homeGuideY) and (mouseY <= app.homeGuideY+app.homeGuideHeight)):
+        app.homeGuideHighlight = True
     else:
-        app.homeHighlight = False
-    print(mouseX, mouseY)
+        app.homeGuideHighlight = False
+    
+    if ((mouseX >= app.sketchGuideX) and (mouseX <= app.sketchGuideX+app.sketchGuideWidth) and 
+        (mouseY >= app.sketchGuideY) and (mouseY <= app.sketchGuideY+app.sketchGuideHeight)):
+        app.sketchGuideHighlight = True
+    else:
+        app.sketchGuideHighlight = False
 
-
-
-
-
+def guide_onMousePress(app, mouseX, mouseY):
+    if ((mouseX >= app.homeGuideX) and (mouseX <= app.homeGuideX+app.homeGuideWidth) and 
+        (mouseY >= app.homeGuideY) and (mouseY <= app.homeGuideY+app.homeGuideHeight)):
+        setActiveScreen('intro')
+    elif ((mouseX >= app.sketchGuideX) and (mouseX <= app.sketchGuideX+app.sketchGuideWidth) and 
+        (mouseY >= app.sketchGuideY) and (mouseY <= app.sketchGuideY+app.sketchGuideHeight)):
+        setActiveScreen('main')
 
 # ---------------------------------------------------------------------------------------- #
 # ------------------------- Code for the main Sketchboard screen ------------------------- #
 # ---------------------------------------------------------------------------------------- #
 def main_redrawAll(app):
+    # Draws the homescreen and guide button
+    drawImage(app.homeMainImg, app.homeMainX, app.homeMainY)
+    drawImage(app.guideMainImg, app.guideMainX, app.guideMainY)
+    if app.homeMainHighlight:
+        drawRect(app.homeMainX, app.homeMainY, app.homeMainWidth, app.homeMainHeight, 
+        fill='yellow', opacity=20)
+    if app.guideMainHighlight:
+        drawRect(app.guideMainX, app.guideMainY, app.guideMainWidth, app.guideMainHeight, 
+        fill='yellow', opacity=20)
     # Initializes the page types
     if app.currPageMode == 'white':
         drawImage(app.whitePage, app.screenX, app.screenY)
@@ -605,7 +644,8 @@ def main_redrawAll(app):
                           top+app.buttonHeight//2, size=15, bold=True, font='orbitron')
     
     if ((app.selectedWritingTool == Pen(app)) and (app.selectedWritingTool.mode) or 
-          (app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
+          (app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode) or 
+          (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode)):
         drawRect(app.colorMenuX, app.colorMenuY, app.colorMenuWidth, 
                  app.colorMenuHeight, fill=app.colorMenuColor)
         for i in range(len(app.colorMenuCenters)):
@@ -728,6 +768,15 @@ def main_onMousePress(app, mouseX, mouseY):
             app.penColor = colorSelection
         elif ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
             app.highlighterColor = colorSelection
+        # Attempting
+        elif ((app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode)):
+            for item in app.allObjects:
+                if item.selected:
+                    if isinstance(item, Line):
+                        item.color = colorSelection
+                    else:
+                        item.fill = colorSelection
+
             
     if ((app.selectedWritingTool == PreloadedShapesTool(app)) and (app.selectedWritingTool.mode)):
         if ((app.regPolyCx != None) and (app.regPolyCy != None) and 
@@ -755,6 +804,14 @@ def main_onMousePress(app, mouseX, mouseY):
             elif item.selected:
                 item.selected = not item.selected
         resetLassoVars(app)
+    
+    # Allows user to navigate to homescreen or guide page
+    if ((mouseX >= app.homeMainX) and (mouseX <= app.homeMainX+app.homeMainWidth) and 
+        (mouseY >= app.homeMainY) and (mouseY <= app.homeMainY+app.homeMainHeight)):
+        setActiveScreen('intro')
+    elif ((mouseX >= app.guideMainX) and (mouseX <= app.guideMainX+app.guideMainWidth) and 
+        (mouseY >= app.guideMainY) and (mouseY <= app.guideMainY+app.guideMainHeight)):
+        setActiveScreen('guide')
     pass
 
 def main_onMouseDrag(app, mouseX, mouseY):
@@ -824,6 +881,18 @@ def main_onMouseMove(app, mouseX, mouseY):
                 regCx, regCy, regR = item.cx, item.cy, item.r
                 if (distance(regCx, regCy, mouseX, mouseY) < regR+app.eraserRadius):
                     app.allObjects.remove(item)
+        
+    if ((mouseX >= app.homeMainX) and (mouseX <= app.homeMainX+app.homeMainWidth) and 
+        (mouseY >= app.homeMainY) and (mouseY <= app.homeMainY+app.homeMainHeight)):
+        app.homeMainHighlight = True
+    else:
+        app.homeMainHighlight = False
+    
+    if ((mouseX >= app.guideMainX) and (mouseX <= app.guideMainX+app.guideMainWidth) and 
+        (mouseY >= app.guideMainY) and (mouseY <= app.guideMainY+app.guideMainHeight)):
+        app.guideMainHighlight = True
+    else:
+        app.guideMainHighlight = False
     pass
     
 def main_onMouseRelease(app, mouseX, mouseY):
