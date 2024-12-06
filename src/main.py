@@ -1,7 +1,7 @@
 from cmu_graphics import *
 from urllib.request import urlopen
 from PIL import Image, ImageDraw, ImageOps
-# Fix eraser, write instruction screens, fix movement 
+
 # Create classes for each kind of object that will be drawn on the board
 class Line:
     def __init__(self, x0, y0, x1, y1):
@@ -63,7 +63,7 @@ class RegPolygon:
 # Create classes for each writing utensil
 class Pencil:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
+        # Used to check if mode is active or not
         self.mode = False
     
     def __eq__(self, other):
@@ -78,7 +78,6 @@ class Pencil:
 
 class Pen:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
 
     def __eq__(self, other):
@@ -92,7 +91,6 @@ class Pen:
 
 class Highlighter:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
 
     def __eq__(self, other):
@@ -106,7 +104,6 @@ class Highlighter:
 
 class Eraser:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
     
     def __eq__(self, other):
@@ -120,7 +117,6 @@ class Eraser:
 
 class Lasso:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
 
     def __eq__(self, other):
@@ -134,7 +130,6 @@ class Lasso:
 
 class PreloadedShapesTool:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
     
     def __eq__(self, other):
@@ -148,7 +143,6 @@ class PreloadedShapesTool:
 
 class ShapeAutocorrect:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
     
     def __eq__(self, other):
@@ -162,7 +156,6 @@ class ShapeAutocorrect:
 
 class PageMode:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
     
     def __eq__(self, other):
@@ -176,7 +169,6 @@ class PageMode:
     
 class Undo:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
         
     def __eq__(self, other):
@@ -190,7 +182,6 @@ class Undo:
     
 class Reset:
     def __init__(self, app):
-        # Eventually used to check if mode is active or not
         self.mode = False
 
     def __eq__(self, other):
@@ -512,11 +503,13 @@ def onAppStart(app):
     app.regPolyCx, app.regPolyCy = None, None
     app.regPolyR = None
     app.regPolyPoints = None
-    pass
 
-# Referenced CMU Graphics Documentation to understand certain functions like Drawing Shapes
+# Referenced CMU Graphics Documentation to understand certain functions like Drawing Shapes,
+# Screens, Images, Built-in colors, RGB Values, Gradients, etc.
 # Link: https://academy.cs.cmu.edu/docs 
 
+# (2) Referenced "demo-screens" from CMU 112 Website
+# Link: https://www.cs.cmu.edu/~112/notes/tp-related-demos/tp-related-demos.html
 # ---------------------------------------------------------------------------------------- #
 # --------------------------- Code for the introduction screen --------------------------- #
 # ---------------------------------------------------------------------------------------- #
@@ -547,7 +540,6 @@ def intro_onMouseMove(app, mouseX, mouseY):
         app.instructButtonBorder = 'aquamarine'
     else:
         app.instructButtonBorder = 'aliceBlue'
-    pass
 
 def intro_onMousePress(app, mouseX, mouseY):
     if ((mouseX >= app.drawButtonX) and (mouseX <= app.drawButtonX+app.titleButtonWidth) and 
@@ -700,7 +692,6 @@ def main_redrawAll(app):
         for lassoLine in app.selectLines:
             x0, y0, x1, y1 = lassoLine.x0, lassoLine.y0, lassoLine.x1, lassoLine.y1
             drawLine(x0, y0, x1, y1, fill=lassoLine.color, lineWidth=lassoLine.lineWidth)
-    pass
 
 def main_onMousePress(app, mouseX, mouseY):
     # Ensures only 1 writing tool is selected at a time
@@ -719,6 +710,7 @@ def main_onMousePress(app, mouseX, mouseY):
             app.selectedWritingTool = currWritingTool
             app.previousWritingTool.mode = not app.previousWritingTool.mode
             app.selectedWritingTool.mode = not app.selectedWritingTool.mode
+            app.selectedColor = None
     
     # Allows user to change page mode, undo most recent item drawn, or clear the entire canvas
     if ((app.selectedWritingTool == PageMode(app)) and (app.selectedWritingTool.mode)):
@@ -768,7 +760,6 @@ def main_onMousePress(app, mouseX, mouseY):
             app.penColor = colorSelection
         elif ((app.selectedWritingTool == Highlighter(app)) and (app.selectedWritingTool.mode)):
             app.highlighterColor = colorSelection
-        # Attempting
         elif ((app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode)):
             for item in app.allObjects:
                 if item.selected:
@@ -777,7 +768,6 @@ def main_onMousePress(app, mouseX, mouseY):
                     else:
                         item.fill = colorSelection
 
-            
     if ((app.selectedWritingTool == PreloadedShapesTool(app)) and (app.selectedWritingTool.mode)):
         if ((app.regPolyCx != None) and (app.regPolyCy != None) and 
             (app.regPolyR != None) and (app.regPolyPoints != None)):
@@ -812,7 +802,7 @@ def main_onMousePress(app, mouseX, mouseY):
     elif ((mouseX >= app.guideMainX) and (mouseX <= app.guideMainX+app.guideMainWidth) and 
         (mouseY >= app.guideMainY) and (mouseY <= app.guideMainY+app.guideMainHeight)):
         setActiveScreen('guide')
-    pass
+
 
 def main_onMouseDrag(app, mouseX, mouseY):
     app.x1, app.y1 = mouseX, mouseY
@@ -857,7 +847,6 @@ def main_onMouseDrag(app, mouseX, mouseY):
 
     app.cursorX, app.cursorY = mouseX, mouseY
     app.x1, app.y1 = None, None
-    pass
 
 def main_onMouseMove(app, mouseX, mouseY):
     app.cursorX, app.cursorY = mouseX, mouseY
@@ -893,7 +882,6 @@ def main_onMouseMove(app, mouseX, mouseY):
         app.guideMainHighlight = True
     else:
         app.guideMainHighlight = False
-    pass
     
 def main_onMouseRelease(app, mouseX, mouseY):
     if (((app.selectedWritingTool == Pencil(app)) and (app.selectedWritingTool.mode)) or
@@ -959,7 +947,6 @@ def main_onMouseRelease(app, mouseX, mouseY):
             resetLassoVars(app)
 
     app.curorsX, app.cursorY = mouseX, mouseY
-    pass
 
 def main_onKeyHold(app, keys):
     if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode) and (app.autoCx != None):
@@ -1006,12 +993,10 @@ def main_onKeyHold(app, keys):
                 elif isinstance(lassoItem, RegPolygon):
                     lassoItem.cx += xShift
                     lassoItem.cy += yShift
-    pass
 
 def main_onKeyRelease(app, key):
     if (app.selectedWritingTool == Lasso(app)) and (app.selectedWritingTool.mode):
         app.keys.remove(key)
-    pass
 
 def main_onKeyPress(app, key):
     if ((key == 'r') and (app.selectedWritingTool == ShapeAutocorrect(app)) and 
@@ -1022,7 +1007,7 @@ def main_onKeyPress(app, key):
         resetLassoVars(app)
     else:
         app.keys.append(key)
-    pass
+
 # ---------------------------------------------------------------------------------------- #
 # ---------------------------------------------------------------------------------------- #
 
