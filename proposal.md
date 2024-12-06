@@ -40,6 +40,14 @@ My primary plan for version control and backing up my code will be through my pe
 Tech List:
 - None / No external tech modules
 
-OpenSketch Storyboard:
+OpenSketch Storyboard: 
 
-[Alan Pham - 15112 Storyboard](https://github.com/alanpham06/alan-15112TP/blob/main/Alan%20Pham%20-%2015112%20TP1%20Storyboard.pdf)
+I designed my storyboard on OneNote. I roughly modeled the design of my project and demonstrated some features.  
+
+[Alan Pham - 15112 Storyboard](https://github.com/alanpham06/alan-15112TP/blob/main/Alan%20Pham%20-%2015112%20Final%20Story%20Board%20(TP3).pdf)
+
+OpenSketch Tool Guide: 
+
+I designed my Tool Guide on Google Drawing. I made a detailed writing tool guide that explains the function of each writing tool to the user. 
+
+[Alan Pham - 15112 Tool Guide](https://github.com/alanpham06/alan-15112TP/blob/main/Alan%20Pham%20-%2015112%20Final%20OpenSketch%20Tool%20Guide.pdf)
