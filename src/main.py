@@ -308,6 +308,7 @@ def makeGridPage(pilImage):
         draw.line((startX+(offset*i), 0, startX+(offset*i), imageHeight), width=3, fill='lightSkyBlue')
 
 def onAppStart(app): 
+    # ------------------------ OpenSketch title screen variables ------------------------ #
     # Initializes *OpenSketch* Title Screen picture 
     openSketchUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/writing-tool-icons/openSketch-titlescreen-final.jpg?raw=true'
     titlePILImage = loadPilImage(openSketchUrl)
@@ -323,7 +324,35 @@ def onAppStart(app):
     app.drawButtonX, app.drawButtonY = 250, 685
     app.instructButtonX, app.instructButtonY = 555, 685
     app.titleButtonWidth, app.titleButtonHeight = 220, 75
+    app.sketchButtonBorder, app.instructButtonBorder = 'aliceBlue', 'aliceBlue'
 
+    # ----------------------- OpenSketch guide screen variables ------------------------ #
+    # Initializes OpenSketch Tool Guide Screen picture 
+    openSketchGuideUrl = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/openSketch-screen-images/openSketch-guidescreen-1.jpg?raw=true'
+    guidePILImage = loadPilImage(openSketchGuideUrl)
+    guideWidth, guideHeight = 1000, 800
+    guidePILImgResize = guidePILImage.resize((guideWidth, guideHeight))
+    app.openSketchGuideImg = CMUImage(guidePILImgResize)
+
+    # Initializes Homescreen and Sketch Buttons
+    homeURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/openSketch-screen-images/homescreen-icon.jpg?raw=true'
+    homePILImage = loadPilImage(homeURL)
+    app.homeWidth, app.homeHeight = 75, 75
+    homePILImgResize = homePILImage.resize((app.homeWidth, app.homeHeight))
+    homePILImgAdjusted = addRoundedCornersWithBG(homePILImgResize, 20, (0, 0, 0, 0))
+    app.homeImg = CMUImage(homePILImgAdjusted)
+    app.homeX, app.homeY = 750, 25
+    app.homeHighlight = False
+
+    sketchURL = 'https://github.com/alanpham06/alan-15112TP/blob/main/src/openSketch-screen-images/sketch-icon.jpg?raw=true'
+    sketchPILImage = loadPilImage(sketchURL)
+    app.sketchWidth, app.sketchHeight = 75, 75
+    sketchPILImgResize = sketchPILImage.resize((app.sketchWidth, app.sketchHeight))
+    sketchPILImgAdjusted = addRoundedCornersWithBG(sketchPILImgResize, 20, (0, 0, 0, 0))
+    app.sketchImg = CMUImage(sketchPILImgAdjusted)
+    app.sketchX, app.sketchY = 875, 25
+
+    # ------------------------ OpenSketch main screen variables ------------------------ #
     # Variables for the main sketchboard
     app.keys = []
     app.background = 'white'
@@ -467,18 +496,78 @@ def onAppStart(app):
 # Referenced CMU Graphics Documentation to understand certain functions like Drawing Shapes
 # Link: https://academy.cs.cmu.edu/docs 
 
+# ---------------------------------------------------------------------------------------- #
+# --------------------------- Code for the introduction screen --------------------------- #
+# ---------------------------------------------------------------------------------------- #
 def intro_redrawAll(app):
+    # Initializes the home / introduction page
     drawImage(app.openSketchImg, 0, 0)
     drawRect(app.drawButtonX, app.drawButtonY, app.titleButtonWidth, app.titleButtonHeight, 
              fill=gradient(app.buttonColor1, app.buttonColor2, app.buttonColor3, app.buttonColor4, 
-             start='right-top'), border='aliceBlue', borderWidth=4)
+             start='right-top'), border=app.sketchButtonBorder, borderWidth=4)
+    drawLabel(f'Sketch!', app.drawButtonX+app.titleButtonWidth//2, app.drawButtonY+app.titleButtonHeight//2,
+              fill='snow', font='monospace', bold=True, size=40)
     drawRect(app.instructButtonX, app.instructButtonY, app.titleButtonWidth+13, app.titleButtonHeight, 
              fill=gradient(app.buttonColor1, app.buttonColor2, app.buttonColor3, app.buttonColor4, 
-             start='left-top'), border='aliceBlue', borderWidth=4)
+             start='left-top'), border=app.instructButtonBorder, borderWidth=4)
+    drawLabel(f'Sketch Guide', app.instructButtonX+(app.titleButtonWidth+13)//2, 
+              app.instructButtonY+app.titleButtonHeight//2, fill='snow', font='monospace', bold=True, size=28)
+
+def intro_onMouseMove(app, mouseX, mouseY):
+    # Highlights proper button if user hovers over it
+    if ((mouseX >= app.drawButtonX) and (mouseX <= app.drawButtonX+app.titleButtonWidth) and 
+        (mouseY >= app.drawButtonY) and (mouseX <= app.drawButtonY+app.titleButtonHeight)):
+        app.sketchButtonBorder = 'aquamarine'
+    else:
+        app.sketchButtonBorder = 'aliceBlue'
+
+    if ((mouseX >= app.instructButtonX) and (mouseX <= app.instructButtonX+app.titleButtonWidth+13) and 
+         (mouseY >= app.instructButtonY) and (mouseX <= app.instructButtonY+app.titleButtonHeight)):
+        app.instructButtonBorder = 'aquamarine'
+    else:
+        app.instructButtonBorder = 'aliceBlue'
     pass
 
+def intro_onMousePress(app, mouseX, mouseY):
+    if ((mouseX >= app.drawButtonX) and (mouseX <= app.drawButtonX+app.titleButtonWidth) and 
+        (mouseY >= app.drawButtonY) and (mouseX <= app.drawButtonY+app.titleButtonHeight)):
+        setActiveScreen('main')
+    elif ((mouseX >= app.instructButtonX) and (mouseX <= app.instructButtonX+app.titleButtonWidth+13) and 
+         (mouseY >= app.instructButtonY) and (mouseX <= app.instructButtonY+app.titleButtonHeight)):
+        setActiveScreen('guide')
+
+
+# ---------------------------------------------------------------------------------------- #
+# -------------------- Code for the Sketch Guide/Instructions screen --------------------- #
+# ---------------------------------------------------------------------------------------- #
+
+def guide_redrawAll(app):
+    # Initializes the guide / instruction page
+    drawImage(app.openSketchGuideImg, 0, 0)
+    drawImage(app.homeImg, app.homeX, app.homeY)
+    if app.homeHighlight:
+        drawRect(app.homeX, app.homeY, app.homeWidth, app.homeHeight, fill='red', opacity=60)
+    drawImage(app.sketchImg, app.sketchX, app.sketchY)
+    pass
+
+def guide_onMouseMove(app, mouseX, mouseY):
+    if ((mouseX >= app.homeX) and (mouseX <= app.homeX+app.homeWidth) and 
+        (mouseY >= app.homeY) and (mouseX <= app.homeY+app.homeHeight)):
+        app.homeHighlight = True
+    else:
+        app.homeHighlight = False
+    print(mouseX, mouseY)
+
+
+
+
+
+
+# ---------------------------------------------------------------------------------------- #
+# ------------------------- Code for the main Sketchboard screen ------------------------- #
+# ---------------------------------------------------------------------------------------- #
 def main_redrawAll(app):
-    # Initializes the page 
+    # Initializes the page types
     if app.currPageMode == 'white':
         drawImage(app.whitePage, app.screenX, app.screenY)
     elif app.currPageMode == 'lined':
@@ -865,6 +954,8 @@ def main_onKeyPress(app, key):
     else:
         app.keys.append(key)
     pass
+# ---------------------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------------------- #
 
 # Helper functions used throughout the program
 def getColorSelection(app, mouseX, mouseY):
